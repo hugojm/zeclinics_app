@@ -1,7 +1,7 @@
 
 
 body {
-  background-image: url('./sources/background.png');
+  background-image: url('/static/img/background.png');
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-size: cover;
@@ -19,7 +19,7 @@ body {
 .but_terato
 {
 display: block;
-background-image: url('./sources/but1.png');
+background-image: url('/static/img/but1.png');
 background-size: 200px 70px;
 width: 204px;
 height: 74px;
@@ -29,14 +29,14 @@ margin-bottom: 20px;
 .but_terato:hover
 {
 
-background-image: url('./sources/but1_hover.png');
+background-image: url('/static/img/but1_hover.png');
 
 }
 
 .but_cardio:hover
 {
 
-background-image: url('./sources/but2_hover.png');
+background-image: url('/static/img/but2_hover.png');
 
 }
 
@@ -44,7 +44,7 @@ background-image: url('./sources/but2_hover.png');
 {
 
 display: block;
-background-image: url('./sources/but2.png');
+background-image: url('/static/img/but2.png');
 background-size: 200px 70px;
 width: 204px;
 height: 74px;

@@ -1,0 +1,51 @@
+
+
+body {
+  background-image: url('./sources/background.png');
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+.center {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+
+.but_terato
+{
+display: block;
+background-image: url('./sources/but1.png');
+background-size: 200px 70px;
+width: 204px;
+height: 74px;
+margin-bottom: 20px;
+}
+
+.but_terato:hover
+{
+
+background-image: url('./sources/but1_hover.png');
+
+}
+
+.but_cardio:hover
+{
+
+background-image: url('./sources/but2_hover.png');
+
+}
+
+.but_cardio
+{
+
+display: block;
+background-image: url('./sources/but2.png');
+background-size: 200px 70px;
+width: 204px;
+height: 74px;
+}

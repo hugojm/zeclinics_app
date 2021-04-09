@@ -1,7 +1,15 @@
 
 
-body {
+.body_index {
   background-image: url('/static/img/background.png');
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+  position: relative;
+}
+
+.body_terato {
+  background-image: url('/static/img/background2.png');
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-size: cover;
@@ -9,7 +17,7 @@ body {
 
 .center {
   margin: 0;
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
   -ms-transform: translate(-50%, -50%);
@@ -18,34 +26,85 @@ body {
 
 .but_terato
 {
-display: block;
-background-image: url('/static/img/but1.png');
-background-size: 200px 70px;
-width: 204px;
-height: 74px;
-margin-bottom: 20px;
+  display: block;
+  background-image: url('/static/img/but1.png');
+  background-size: 200px 70px;
+  width: 204px;
+  height: 74px;
+  margin-bottom: 20px;
 }
 
 .but_terato:hover
 {
 
-background-image: url('/static/img/but1_hover.png');
+  background-image: url('/static/img/but1_hover.png');
 
 }
 
 .but_cardio:hover
 {
 
-background-image: url('/static/img/but2_hover.png');
+  background-image: url('/static/img/but2_hover.png');
 
 }
 
 .but_cardio
 {
 
-display: block;
-background-image: url('/static/img/but2.png');
-background-size: 200px 70px;
-width: 204px;
-height: 74px;
+  display: block;
+  background-image: url('/static/img/but2.png');
+  background-size: 200px 70px;
+  width: 204px;
+  height: 74px;
+}
+
+
+.pos {
+  margin: 0;
+  position: fixed;
+  top: 200px;
+  left: 100px;
+}
+
+.but_upload
+{
+  background-image: url('/static/img/but3.png');
+  background-repeat: no-repeat;
+  background-size: 150px 60px;
+  width: 150px;
+  height: 60px;
+
+}
+
+.but_upload:hover
+{
+  background-image: url('/static/img/but3_hover.png');
+}
+
+.but_file
+{
+  background-image: url('/static/img/but4.png');
+  background-repeat: no-repeat;
+  background-size: 150px 60px;
+  width: 150px;
+  height: 60px;
+  padding-right: 30px;
+}
+
+.but_file:hover
+{
+  background-image: url('/static/img/but4_hover.png');
+}
+
+.img1{
+  position: fixed;
+  height: 131px;
+  width: 518px;
+  right: 40px;
+  top: 100px;
+}
+.img2{
+  position: fixed;
+  right: 40px;
+  top: 300px;
 }

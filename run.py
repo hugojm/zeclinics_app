@@ -18,6 +18,7 @@ ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 
 
@@ -54,9 +55,8 @@ def upload_file():
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             print_mask(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('uploaded_file',
-                                     filename='out.png'))
-    return render_template('terato.html')
+            return render_template('terato.html' , input = filename , output = filename[:-4]+'_out.png', file=True)
+    return render_template('terato.html', file=False)
 
 @app.route('/cardio.html')
 def cardio():

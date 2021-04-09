@@ -24,4 +24,4 @@ def print_mask(filename):
         mask = torch.split(outputs['out'].cpu(),1,0)[0].squeeze()[i].detach().numpy()
         mask = np.ma.masked_where(mask < 0.1, mask)
         plt.imshow(mask, cmaps[i], alpha = 0.7)
-    plt.savefig('uploads/out.png')
+    plt.savefig(filename[:-4]+'_out.png', bbox_inches='tight')

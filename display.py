@@ -44,6 +44,7 @@ def print_mask(img_path, type):
             plt.imshow(mask, cmaps[i], alpha = 0.7)
             part = name(i)
             plt.savefig(img_path[:-4]+'_'+ part +'_out.png', bbox_inches='tight')
+            plt.clf()
     else:
         for i in [1,2,3,5]:
             mask = torch.split(outputs['out'].cpu(),1,0)[0].squeeze()[i].detach().numpy()
@@ -52,6 +53,7 @@ def print_mask(img_path, type):
             plt.imshow(mask, cmaps[i], alpha = 0.7)
             part = name(i)
             plt.savefig(img_path[:-4]+'_'+ part +'_out.png', bbox_inches='tight')
+            plt.clf()
 
 
 def plate(plate_name, upload_folder):

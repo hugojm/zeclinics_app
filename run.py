@@ -10,16 +10,18 @@ from torchvision import transforms
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 import numpy as np
-from display import print_mask
+from display import plate
 from pathlib import Path
 
 
 UPLOAD_FOLDER = 'uploads/'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'xml'}
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
+
 
 
 
@@ -39,10 +41,12 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
 @app.route('/terato.html', methods=['GET', 'POST'])
 def upload_file():
     if request.method == "POST":
         files = request.files.getlist("file[]")
+        plate_name = Path(files[1].filename).parent.parts[0]
         for file in files:
             if file and allowed_file(file.filename):
                 path_name = Path(file.filename)
@@ -50,6 +54,8 @@ def upload_file():
                     os.mkdir(os.path.join(app.config['UPLOAD_FOLDER'],path_name.parent))
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], path_name))
+        plate(plate_name,app.config['UPLOAD_FOLDER'])
+
     return render_template('terato.html')
 
 @app.route('/cardio.html')

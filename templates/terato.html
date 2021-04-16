@@ -15,5 +15,35 @@
         <input type=submit name=Upload style="display:none">
       </label>
     </form>
-  </div>
+    {% if done %}
+        <select id="comp_select">
+          {% for well in plates %}
+          <option value="{{ well }}">{{ well }}</option>
+          {% endfor %}
+        </select>
+        <input type="checkbox" id="eyes_dorsal" onclick="calc()"/>
+        <p id="eyes_dorsal_text">eyes_dorsal</p>
+
+    {% endif %}
+    <script type="text/javascript">
+    function calc()
+      {
+      var e = document.getElementById("comp_select");
+      var path = e.value;
+      if (document.getElementById('eyes_dorsal').checked)
+      {
+
+        var type = document.getElementById('eyes_dorsal_text').textContent
+        var image = path + "/" + type + "_out.png"
+        console.log(image.substring(7))
+        var div = document.createElement("div");
+        div.innerHTML = '<img src={{url_for('static',filename= ' + image.substring(7)  +')}}/>';
+        div.innerHTML += 'hola';
+        document.body.appendChild(div);
+      }
+
+
+      }
+    </script>
+
   </body>

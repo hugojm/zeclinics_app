@@ -26,7 +26,7 @@ def name(index):
         return "ov"
     return
 
-def print_mask(img_path, type):
+def print_mask(img_path,well_path, type):
     matplotlib.use('agg')
     device = 'cpu'
     img = Image.open(img_path)
@@ -43,7 +43,7 @@ def print_mask(img_path, type):
             plt.imshow(torch.split(data_img.unsqueeze(0),1,0)[0].squeeze().permute(1, 2, 0), alpha=0.7)
             plt.imshow(mask, cmaps[i], alpha = 0.7)
             part = name(i)
-            plt.savefig(img_path[:-4]+'_'+ part +'_out.png', bbox_inches='tight')
+            plt.savefig(well_path +'/'+ part +'_out.png', bbox_inches='tight')
             plt.clf()
     else:
         for i in [1,2,3,5]:
@@ -52,7 +52,7 @@ def print_mask(img_path, type):
             plt.imshow(torch.split(data_img.unsqueeze(0),1,0)[0].squeeze().permute(1, 2, 0), alpha=0.7)
             plt.imshow(mask, cmaps[i], alpha = 0.7)
             part = name(i)
-            plt.savefig(img_path[:-4]+'_'+ part +'_out.png', bbox_inches='tight')
+            plt.savefig(well_path +'/'+ part +'_out.png', bbox_inches='tight')
             plt.clf()
 
 
@@ -76,8 +76,8 @@ def plate(plate_name, upload_folder):
                 lateral_img_path = well_path + "/" + well.attrib['lateral_image']
                 image_name = plate_name + "_" + well_name
                 # This list will contain pairs of (path, image) that will be written at the end if there are no errors.
-                try:
-                    print_mask(lateral_img_path, "lateral")
-                    print_mask(dorsal_img_path, "dorsal")
-                except:
-                    continue
+                    # try:
+                    #     print_mask(lateral_img_path,well_path, "lateral")
+                    #     print_mask(dorsal_img_path,well_path, "dorsal")
+                    # except:
+                    #     continue

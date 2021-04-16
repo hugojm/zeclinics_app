@@ -12,9 +12,10 @@ from matplotlib.figure import Figure
 import numpy as np
 from display import plate
 from pathlib import Path
+from flask import json
 
 
-UPLOAD_FOLDER = 'uploads/'
+UPLOAD_FOLDER = 'static/images'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'xml'}
 
 app = Flask(__name__)
@@ -55,12 +56,16 @@ def upload_file():
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], path_name))
         plate(plate_name,app.config['UPLOAD_FOLDER'])
-
-    return render_template('terato.html')
+        dirname = os.path.join(app.config['UPLOAD_FOLDER'], plate_name)
+        dirs = [ name for name in os.listdir(dirname) if os.path.isdir(os.path.join(dirname, name)) ]
+        dirs2 = [dirname+ "/" + sub for sub in dirs]
+        return render_template('terato.html', plates = dirs2, done=True)
+    return render_template('terato.html', done=False)
 
 @app.route('/cardio.html')
 def cardio():
     return render_template('cardio.html')
+
 
 @app.context_processor
 def override_url_for():

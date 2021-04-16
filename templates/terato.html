@@ -23,6 +23,18 @@
         </select>
         <input type="checkbox" id="eyes_dorsal" onclick="calc()"/>
         <p id="eyes_dorsal_text">eyes_dorsal</p>
+        <input type="checkbox" id="heart" onclick="calc()"/>
+        <p id="heart_text">heart</p>
+        <input type="checkbox" id="outline_dorsal" onclick="calc()"/>
+        <p id="outline_dorsal_text">outline_dorsal</p>
+        <input type="checkbox" id="outline_lateral" onclick="calc()"/>
+        <p id="outline_lateral_text">outline_lateral</p>
+        <input type="checkbox" id="ov" onclick="calc()"/>
+        <p id="ov_text">ov</p>
+        <input type="checkbox" id="yolk" onclick="calc()"/>
+        <p id="yolk_text">yolk</p>
+
+        <div id ="div1"> </div>
 
     {% endif %}
     <script type="text/javascript">
@@ -32,17 +44,13 @@
       var path = e.value;
       if (document.getElementById('eyes_dorsal').checked)
       {
-
         var type = document.getElementById('eyes_dorsal_text').textContent
         var image = path + "/" + type + "_out.png"
         console.log(image.substring(7))
         var div = document.createElement("div");
-        div.innerHTML = '<img src={{url_for('static',filename= ' + image.substring(7)  +')}}/>';
-        div.innerHTML += 'hola';
+        div.innerHTML = '<img src={{url_for('static',filename= '')}}'+image.substring(7)+ '/>';
         document.body.appendChild(div);
       }
-
-
       }
     </script>
 

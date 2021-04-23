@@ -83,7 +83,7 @@ def cardio():
                 path_name = Path(file.filename)
                 path_name = os.path.join('./' , path_name)
                 matplotlib.use('agg')
-                masks , a , v, _ =process_video(path_name,update_it=1,skip=40, debug=True, gen_video=True, video_name=os.path.join(app.config['UPLOAD_FOLDER_CARDIO'],'out.mp4'))
+                masks , a , v, _ =process_video(path_name,update_it=1,skip=40, debug=True, gen_video=True, video_name=os.path.join(app.config['UPLOAD_FOLDER_CARDIO'],'out.webm'))
                 hp.plotter(a[5],a[6],show=False, title='Atrium signal').savefig(os.path.join(app.config['UPLOAD_FOLDER_CARDIO'],'out1.png'))
                 hp.plotter(v[5],v[6],show=False, title='Ventricle signal').savefig(os.path.join(app.config['UPLOAD_FOLDER_CARDIO'],'out2.png'))
         return render_template('cardio.html', print=True)

@@ -25,9 +25,8 @@
           <img src="{{url_for('static',filename= 'videos/out2.png')}}"/>
     </div>
     <div class="video">
-      <video width="320" height="240" controls>
-        <source src="{{ url_for('static', filename='videos/out.mp4')}}" type="video/mp4">
-        Your browser does not support the video tag.
+      <video width="240" height="320" controls>
+        <source src="{{ url_for('static', filename='videos/out.webm')}}" type="video/webm" codecs='vp8.0, vorbis'>
       </video>
     </div>
     {% endif %}

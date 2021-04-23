@@ -16,42 +16,74 @@
       </label>
     </form>
     {% if done %}
+      <br>
         <select id="comp_select">
           {% for well in plates %}
           <option value="{{ well }}">{{ well }}</option>
           {% endfor %}
         </select>
-        <input type="checkbox" id="eyes_dorsal" onclick="calc()"/>
-        <p id="eyes_dorsal_text">eyes_dorsal</p>
-        <input type="checkbox" id="heart" onclick="calc()"/>
-        <p id="heart_text">heart</p>
-        <input type="checkbox" id="outline_dorsal" onclick="calc()"/>
-        <p id="outline_dorsal_text">outline_dorsal</p>
-        <input type="checkbox" id="outline_lateral" onclick="calc()"/>
-        <p id="outline_lateral_text">outline_lateral</p>
-        <input type="checkbox" id="ov" onclick="calc()"/>
-        <p id="ov_text">ov</p>
-        <input type="checkbox" id="yolk" onclick="calc()"/>
-        <p id="yolk_text">yolk</p>
+        <br>
+        <br>
+        <input type="checkbox" id="eyes_dorsal" onclick="calc('eyes_dorsal')"/>
+        <label id="eyes_dorsal_text">Eyes dorsal</label>
+        <br>
+        <input type="checkbox" id="heart" onclick="calc('heart')"/>
+        <label id="heart_text">Heart</label>
+        <br>
+        <input type="checkbox" id="outline_dorsal" onclick="calc('outline_dorsal')"/>
+        <label id="outline_dorsal_text">Outline dorsal</label>
+        <br>
+        <input type="checkbox" id="outline_lateral" onclick="calc('outline_lateral')"/>
+        <label id="outline_lateral_text">Outline lateral</label>
+        <br>
+        <input type="checkbox" id="ov" onclick="calc('ov')"/>
+        <label id="ov_text">Ov</label>
+        <br>
+        <input type="checkbox" id="yolk" onclick="calc('yolk')"/>
+        <label id="yolk_text">Yolk</label>
 
-        <div id ="div1"> </div>
+          <div class="print" id ="lateral_div"> </div>
+          <div class="print1" id ="dorsal_div"> </div>
+          <div class="print1" id ="eyes_dorsal_div"> </div>
+          <div class="print1" id ="outline_dorsal_div"> </div>
+          <div class="print" id ="outline_lateral_div"> </div>
+          <div class="print" id ="heart_div"> </div>
+          <div class="print" id ="ov_div"> </div>
+          <div class="print" id ="yolk_div"> </div>
+
+
 
     {% endif %}
     <script type="text/javascript">
-    function calc()
+    var types = ["eyes_dorsal", "heart", "outline_dorsal", "outline_lateral", "ov", "yolk"];
+    document.getElementById("comp_select").onchange = function(){
+      var path = document.getElementById("comp_select").value;
+      var div = document.getElementById("lateral_div");
+      div.innerHTML = '<img src={{url_for('static',filename= '')}}'+ path.substring(7) +'/lateral.png' + '/>';
+      var div2 = document.getElementById("dorsal_div");
+      div2.innerHTML = '<img src={{url_for('static',filename= '')}}'+ path.substring(7) +'/dorsal.png' + '/>';
+      types.forEach((item) => {
+        calc(item);
+      });
+
+     };
+
+    function calc(type)
       {
       var e = document.getElementById("comp_select");
       var path = e.value;
-      if (document.getElementById('eyes_dorsal').checked)
+      if (document.getElementById(type).checked)
       {
-        var type = document.getElementById('eyes_dorsal_text').textContent
         var image = path + "/" + type + "_out.png"
-        console.log(image.substring(7))
-        var div = document.createElement("div");
+        var div = document.getElementById(type+"_div");
         div.innerHTML = '<img src={{url_for('static',filename= '')}}'+image.substring(7)+ '/>';
-        document.body.appendChild(div);
       }
+      else{
+        document.getElementById(type+"_div").innerHTML = '';
       }
+    };
+
+
     </script>
 
   </body>

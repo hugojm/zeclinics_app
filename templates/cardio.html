@@ -1,0 +1,34 @@
+<!doctype html>
+  <title>Cardio</title>
+  <head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename= 'css/style.css') }}">
+  </head>
+  <body class="body_terato">
+    <div class="pos">
+    <form method=post enctype=multipart/form-data>
+      <label>
+        <img class="but_file">
+        <input type=file name='file[]' style="display:none" webkitdirectory mozdirectory />
+      </label>
+      <label>
+        <img class="but_upload">
+        <input type=submit name=Upload style="display:none">
+      </label>
+    </form>
+    </div>
+    {% if print %}
+    <div class="graphic1">
+      <img src="{{url_for('static',filename= 'videos/out1.png')}}"/>
+
+    </div>
+    <div class="graphic2">
+          <img src="{{url_for('static',filename= 'videos/out2.png')}}"/>
+    </div>
+    <div class="video">
+      <video width="320" height="240" controls>
+        <source src="{{ url_for('static', filename='videos/out.mp4')}}" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    </div>
+    {% endif %}
+  </body>

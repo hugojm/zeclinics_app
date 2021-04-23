@@ -1,7 +1,7 @@
 
 
 .body_index {
-  background-image: url('/static/img/background.png');
+  background-image: url('/static/img/background.gif');
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-size: cover;
@@ -9,6 +9,13 @@
 }
 
 .body_terato {
+  background-image: url('/static/img/background2.png');
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+.body_cardio {
   background-image: url('/static/img/background2.png');
   background-repeat: no-repeat;
   background-attachment: fixed;
@@ -107,4 +114,61 @@
   position: fixed;
   right: 40px;
   top: 300px;
+}
+
+
+.print{
+
+  top: 100px;
+  right:350px;
+  position: fixed;
+
+}
+
+.print img {
+   height: 150%;
+   width: 150%;
+}
+
+.print1{
+
+  top: 280px;
+  right:350px;
+  position: fixed;
+
+}
+
+.print1 img {
+   height: 150%;
+   width: 150%;
+}
+
+.graphic1{
+  position: fixed;
+  top: 50px;
+  right:10px;
+
+}
+
+.graphic1 img {
+   height: 70%;
+   width: 70%;
+
+}
+.graphic2{
+  position: fixed;
+  top: 400px;
+  right:10px;
+
+}
+
+.graphic2 img {
+   height: 70%;
+   width:70%;
+
+}
+.video{
+  position: fixed;
+  top: 150px;
+  right:600px;
 }

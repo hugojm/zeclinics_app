@@ -35,24 +35,32 @@ def print_mask(img_path,well_path, type):
     data_img = data_transforms(img)
     inputs = data_img.unsqueeze(0).to(device)
     outputs = model(inputs)
-    cmaps = ['Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds']
+    cmaps = ['Oranges', 'Purples', 'Blues', 'Greens', 'Greys', 'Reds']
     if type == "dorsal":
+        plt.imshow(torch.split(data_img.unsqueeze(0),1,0)[0].squeeze().permute(1, 2, 0))
+        plt.axis('off')
+        plt.savefig(well_path +'/'+'dorsal.png', bbox_inches='tight')
+        plt.clf()
         for i in [0,4]:
             mask = torch.split(outputs['out'].cpu(),1,0)[0].squeeze()[i].detach().numpy()
             mask = np.ma.masked_where(mask < 0.1, mask)
-            plt.imshow(torch.split(data_img.unsqueeze(0),1,0)[0].squeeze().permute(1, 2, 0), alpha=0.7)
             plt.imshow(mask, cmaps[i], alpha = 0.7)
+            plt.axis('off')
             part = name(i)
-            plt.savefig(well_path +'/'+ part +'_out.png', bbox_inches='tight')
+            plt.savefig(well_path +'/'+ part +'_out.png', bbox_inches='tight', transparent=True)
             plt.clf()
     else:
+        plt.imshow(torch.split(data_img.unsqueeze(0),1,0)[0].squeeze().permute(1, 2, 0))
+        plt.axis('off')
+        plt.savefig(well_path +'/'+'lateral.png', bbox_inches='tight')
+        plt.clf()
         for i in [1,2,3,5]:
             mask = torch.split(outputs['out'].cpu(),1,0)[0].squeeze()[i].detach().numpy()
             mask = np.ma.masked_where(mask < 0.1, mask)
-            plt.imshow(torch.split(data_img.unsqueeze(0),1,0)[0].squeeze().permute(1, 2, 0), alpha=0.7)
             plt.imshow(mask, cmaps[i], alpha = 0.7)
+            plt.axis('off')
             part = name(i)
-            plt.savefig(well_path +'/'+ part +'_out.png', bbox_inches='tight')
+            plt.savefig(well_path +'/'+ part +'_out.png', bbox_inches='tight', transparent=True)
             plt.clf()
 
 
@@ -76,8 +84,8 @@ def plate(plate_name, upload_folder):
                 lateral_img_path = well_path + "/" + well.attrib['lateral_image']
                 image_name = plate_name + "_" + well_name
                 # This list will contain pairs of (path, image) that will be written at the end if there are no errors.
-                    # try:
-                    #     print_mask(lateral_img_path,well_path, "lateral")
-                    #     print_mask(dorsal_img_path,well_path, "dorsal")
-                    # except:
-                    #     continue
+                # try:
+                #     print_mask(lateral_img_path,well_path, "lateral")
+                #     print_mask(dorsal_img_path,well_path, "dorsal")
+                # except:
+                #     continue

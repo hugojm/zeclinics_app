@@ -1,107 +1,131 @@
-
+@import url("https://use.fontawesome.com/releases/v5.14.0/css/all.css");
 
 .body_index {
   background-image: url('/static/img/background.gif');
   background-repeat: no-repeat;
   background-attachment: fixed;
-  background-size: cover;
+  background-size: 100% 100%;
   position: relative;
 }
 
 .body_terato {
-  background-image: url('/static/img/background2.png');
+  background-image: url('/static/img/background_terato.gif');
   background-repeat: no-repeat;
   background-attachment: fixed;
-  background-size: cover;
+  background-size: 100% 100%;
+  position: relative;
 }
 
 .body_cardio {
-  background-image: url('/static/img/background2.png');
+  background-image: url('/static/img/background_cardio.gif');
   background-repeat: no-repeat;
   background-attachment: fixed;
-  background-size: cover;
+  background-size: 100% 100%;
+  position: relative;
+}
+
+
+
+
+.container {
+  height: 800px;
+  position: relative;
+
 }
 
 .center {
   margin: 0;
   position: fixed;
-  top: 50%;
-  left: 50%;
-  -ms-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
+  top: 40%;
+  left: 40%;
+
 }
 
 .but_terato
 {
-  display: block;
-  background-image: url('/static/img/but1.png');
-  background-size: 200px 70px;
-  width: 204px;
-  height: 74px;
+  border: none;
+  overflow: hidden;
+  background-color: Transparent;
+  outline:none;
+  width: 50%;
+  height: 50%;
   margin-bottom: 20px;
 }
 
-.but_terato:hover
+/* .but_terato:hover
 {
 
   background-image: url('/static/img/but1_hover.png');
 
-}
+} */
 
-.but_cardio:hover
+/* .but_cardio:hover
 {
 
   background-image: url('/static/img/but2_hover.png');
 
-}
+} */
 
 .but_cardio
 {
-
+  border: none;
+  overflow: hidden;
+  background-color: Transparent;
   display: block;
-  background-image: url('/static/img/but2.png');
-  background-size: 200px 70px;
-  width: 204px;
-  height: 74px;
+  outline:none;
+  width: 50%;
+  height: 50%;
 }
 
 
 .pos {
   margin: 0;
   position: fixed;
-  top: 200px;
-  left: 100px;
+  top:22%;
+  left: 4%;
 }
 
 .but_upload
 {
-  background-image: url('/static/img/but3.png');
-  background-repeat: no-repeat;
-  background-size: 150px 60px;
-  width: 150px;
-  height: 60px;
+
+  width: 23%;
+  height: 23%;
+  border: 0;
 
 }
 
-.but_upload:hover
+.but_home
+{
+
+  width: 25%;
+  height: 25%;
+
+}
+
+.home{
+  position: fixed;
+  left: 4%;
+  bottom: 4%;
+}
+
+/* .but_upload:hover
 {
   background-image: url('/static/img/but3_hover.png');
-}
+} */
 
 .but_file
 {
-  background-image: url('/static/img/but4.png');
-  background-repeat: no-repeat;
-  background-size: 150px 60px;
-  width: 150px;
-  height: 60px;
-  padding-right: 30px;
+border: 0;
+width: 23%;
+height: 23%;
+padding-right: 30px;
+
 }
 
-.but_file:hover
+/* .but_file:hover
 {
   background-image: url('/static/img/but4_hover.png');
-}
+} */
 
 .img1{
   position: fixed;
@@ -145,30 +169,196 @@
 
 .graphic1{
   position: fixed;
-  top: 50px;
-  right:10px;
+  top: 40px;
+  right:1px;
+  right:50px;
+  height: 45%;
+  width: 35%;
 
 }
 
-.graphic1 img {
-   height: 70%;
-   width: 70%;
 
-}
+
 .graphic2{
   position: fixed;
-  top: 400px;
-  right:10px;
-
+  top: 450px;
+  right:50px;
+  height: 45%;
+  width: 35%;
 }
 
-.graphic2 img {
-   height: 70%;
-   width:70%;
 
-}
 .video{
   position: fixed;
-  top: 150px;
-  right:600px;
+  top: 37%;
+  left:4%;
+}
+
+
+.selector{
+  margin: 0;
+  position: fixed;
+  top:35%;
+  left: 4%;
+}
+.labels{
+  margin: 0;
+  position: fixed;
+  top:35%;
+  left: 6%;
+
+}
+p{
+  font-size: 20px;
+  line-height: 1;
+  font-family: 'Anton', sans-serif;
+  color:white;
+}
+
+* {
+  box-sizing: border-box;
+}
+input[type="checkbox"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  margin: 0;
+}
+input[type="checkbox"]:focus {
+  outline: 0;
+}
+.cbx {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+}
+.cbx input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #bfbfc0;
+  border-radius: 50%;
+}
+.cbx label {
+  width: 24px;
+  height: 24px;
+  background: none;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  -webkit-filter: url("#goo");
+  filter: url("#goo");
+  transform: trasnlate3d(0, 0, 0);
+  pointer-events: none;
+}
+.cbx svg {
+  position: absolute;
+  top: 5px;
+  left: 4px;
+  z-index: 1;
+  pointer-events: none;
+}
+.cbx svg path {
+  stroke: #fff;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 19;
+  stroke-dashoffset: 19;
+  transition: stroke-dashoffset 0.3s ease;
+  transition-delay: 0.2s;
+}
+.cbx input:checked + label {
+  animation: splash 0.6s ease forwards;
+}
+.cbx input:checked + label + svg path {
+  stroke-dashoffset: 0;
+}
+@-moz-keyframes splash {
+  40% {
+    background: #3edef5;
+    box-shadow: 0 -18px 0 -8px #3edef5, 16px -8px 0 -8px #3edef5, 16px 8px 0 -8px #3edef5, 0 18px 0 -8px #3edef5, -16px 8px 0 -8px #3edef5, -16px -8px 0 -8px #3edef5;
+  }
+  100% {
+    background: #3edef5;
+    box-shadow: 0 -36px 0 -10px transparent, 32px -16px 0 -10px transparent, 32px 16px 0 -10px transparent, 0 36px 0 -10px transparent, -32px 16px 0 -10px transparent, -32px -16px 0 -10px transparent;
+  }
+}
+@-webkit-keyframes splash {
+  40% {
+    background: #3edef5;
+    box-shadow: 0 -18px 0 -8px #3edef5, 16px -8px 0 -8px #3edef5, 16px 8px 0 -8px #3edef5, 0 18px 0 -8px #3edef5, -16px 8px 0 -8px #3edef5, -16px -8px 0 -8px #3edef5;
+  }
+  100% {
+    background: #3edef5;
+    box-shadow: 0 -36px 0 -10px transparent, 32px -16px 0 -10px transparent, 32px 16px 0 -10px transparent, 0 36px 0 -10px transparent, -32px 16px 0 -10px transparent, -32px -16px 0 -10px transparent;
+  }
+}
+@-o-keyframes splash {
+  40% {
+    background: #3edef5;
+    box-shadow: 0 -18px 0 -8px #3edef5, 16px -8px 0 -8px #3edef5, 16px 8px 0 -8px #3edef5, 0 18px 0 -8px #3edef5, -16px 8px 0 -8px #3edef5, -16px -8px 0 -8px #3edef5;
+  }
+  100% {
+    background: #3edef5;
+    box-shadow: 0 -36px 0 -10px transparent, 32px -16px 0 -10px transparent, 32px 16px 0 -10px transparent, 0 36px 0 -10px transparent, -32px 16px 0 -10px transparent, -32px -16px 0 -10px transparent;
+  }
+}
+@keyframes splash {
+  40% {
+    background: #3edef5;
+    box-shadow: 0 -18px 0 -8px #3edef5, 16px -8px 0 -8px #3edef5, 16px 8px 0 -8px #3edef5, 0 18px 0 -8px #3edef5, -16px 8px 0 -8px #3edef5, -16px -8px 0 -8px #3edef5;
+  }
+  100% {
+    background: #3edef5;
+    box-shadow: 0 -36px 0 -10px transparent, 32px -16px 0 -10px transparent, 32px 16px 0 -10px transparent, 0 36px 0 -10px transparent, -32px 16px 0 -10px transparent, -32px -16px 0 -10px transparent;
+  }
+}
+
+.box {
+  position: absolute;
+}
+
+.box select {
+  background-color: #0563af;
+  color: white;
+  padding: 12px;
+  width: 570px;
+  border: none;
+  font-size: 20px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+  -webkit-appearance: button;
+  appearance: button;
+  outline: none;
+}
+
+.box::before {
+  content: "\f13a";
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20%;
+  height: 100%;
+  text-align: center;
+  font-size: 28px;
+  line-height: 45px;
+  color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+.box:hover::before {
+  color: rgba(255, 255, 255, 0.6);
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.box select option {
+  padding: 30px;
 }

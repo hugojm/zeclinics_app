@@ -83,7 +83,7 @@ def plate(plate_name, upload_folder):
                 dorsal_img_path = well_path + "/" + well.attrib['dorsal_image']
                 lateral_img_path = well_path + "/" + well.attrib['lateral_image']
                 image_name = plate_name + "_" + well_name
-                # This list will contain pairs of (path, image) that will be written at the end if there are no errors.
+                #This list will contain pairs of (path, image) that will be written at the end if there are no errors.
                 # try:
                 #     print_mask(lateral_img_path,well_path, "lateral")
                 #     print_mask(dorsal_img_path,well_path, "dorsal")

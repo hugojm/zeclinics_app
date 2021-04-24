@@ -111,7 +111,8 @@ def create_video(video_frames, masks, video_name, size, fps, debug):
     start = time.time()
 
     frames_vid = [None]*len(video_frames)
-    out = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), fps, (size, size), False)
+    fourcc = cv2.VideoWriter_fourcc(*'VP80')
+    out = cv2.VideoWriter(video_name, fourcc, fps, (size, size), False)
     for i in range(0,len(video_frames)):
         grad = ndimage.morphological_gradient(masks[i], size=(3,3))
         frames_vid[i] = np.maximum(grad*(np.max(video_frames[i])+1),video_frames[i])
@@ -135,7 +136,7 @@ def store_evolution_in(lst):
     return _store
 
 
-def process_video(input_video, base_it=50, update_it=4, skip=1, memory_it=1, border_removal=20, lowcut=(1/6), highcut=(35/6), freq_sample=76, p_index=2, p_out_shape=256, gen_video=False, video_name='output.mp4', p_store=False, p_out_dir='output', debug=False):
+def process_video(input_video, base_it=50, update_it=4, skip=1, memory_it=1, border_removal=20, lowcut=(1/6), highcut=(35/6), freq_sample=76, p_index=2, p_out_shape=256, gen_video=False, video_name='output.webm', p_store=False, p_out_dir='output', debug=False):
     # FUNCTION TO PROCESS A LIST OF frames
     # This function applies morphological_chan_vese to each frame,
     #   implemented with memory for efficiency.
@@ -265,7 +266,7 @@ def process_dir(input_video_arrays, raw=True, p_out_dir='output', p_index=2, p_o
 # output = processdir('path' -> Directory with subfolders for each video, debug = T or F)
 #########
 #EXAMPLE:
-#masks,a,v,_=process_video("./20170102_SME_085.lif",debug=True,gen_video=True,update_it=4,skip=1)
+#masks,a,v,_=process_video("./20170102_SME_085.lif",debug=True,gen_video=True,update_it=1,skip=40)
 #print(len(a),len(v),v[6]['bpm'])
 #plt.imshow(p_vid[2270], cmap='gray')
 #plt.show()

@@ -1,32 +1,35 @@
 <!doctype html>
   <title>Cardio</title>
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename= 'css/style.css') }}">
   </head>
-  <body class="body_terato">
+  <body class="body_cardio">
     <div class="pos">
     <form method=post enctype=multipart/form-data>
       <label>
-        <img class="but_file">
+        <img src="{{url_for('static',filename= 'img/file_but.png')}}" class="but_file">
         <input type=file name='file[]' style="display:none" webkitdirectory mozdirectory />
       </label>
       <label>
-        <img class="but_upload">
+        <img src="{{url_for('static',filename= 'img/upload_but.png')}}" class="but_upload">
         <input type=submit name=Upload style="display:none">
       </label>
     </form>
     </div>
+    <div class="home">
+      <a href="{{ url_for('home') }}"><img class="but_home" src="{{url_for('static',filename='img/home_but.png')}}"></a>
+    </div>
     {% if print %}
     <div class="graphic1">
-      <img src="{{url_for('static',filename= 'videos/out1.png')}}"/>
-
+      <img src="{{url_for('static',filename= 'videos/out1.png')}}" style="width: 100%;height: 100%;"/>
     </div>
     <div class="graphic2">
-          <img src="{{url_for('static',filename= 'videos/out2.png')}}"/>
+          <img src="{{url_for('static',filename= 'videos/out2.png')}}" style="width: 100%;height: 100%;"/>
     </div>
     <div class="video">
-      <video width="320" height="240" controls>
-        <source src="{{ url_for('static', filename='videos/out.mp4')}}" type="video/mp4">
+      <video controls src="{{url_for('static',filename= 'videos/out.webm')}}" type="video/webm" codex="vp8.0, vorbis">
+
         Your browser does not support the video tag.
       </video>
     </div>

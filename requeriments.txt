@@ -9,3 +9,7 @@ PyWavelets>=1.1.1
 readlif
 scikit-image
 heartpy
+torch
+torchvision
+opencv-python
+tqdm

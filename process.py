@@ -143,7 +143,7 @@ def process_video(input_video, base_it=50, update_it=4, skip=1, memory_it=1, bor
     #
     # --> input_video: EITHER A LifFile, DIR OR AN ARRAY
     # --> base_it: active contour iterations for step 0
-    # --> update_it: active contour iterations for steps > 0 (lower precision required)
+    # --> update_it: active contour iterations for steps > 0 (lower precision required)
     # --> skip: parameter to add skipping to the algorithm (skip n frames every n+1)
     # --> memory_it: iteration which is passed to the following frame as baseline
     # --> border_removal: size of the border to remove in img and masks
@@ -158,7 +158,7 @@ def process_video(input_video, base_it=50, update_it=4, skip=1, memory_it=1, bor
     # --> p_store: boolean, if TRUE the result is stored locally
     #   --> p_out_dir: directory path to store the result
     #
-    # # # FOR DEVELOPERS # # #
+    # # # FOR DEVELOPERS # # #
     # --> debug: To print the execution status
     #
 

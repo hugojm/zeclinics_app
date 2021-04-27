@@ -16,6 +16,7 @@ from flask import json
 from process import process_video
 import heartpy as hp
 import matplotlib
+import pickle
 
 
 
@@ -75,8 +76,10 @@ def upload_file():
         dirs = [ name for name in os.listdir(dirname) if os.path.isdir(os.path.join(dirname, name)) ]
         dirs2 = [dirname+ "/" + sub for sub in dirs]
         dirs2.sort()
-        return render_template('terato.html', plates = dirs2, done=True)
-    return render_template('terato.html', done=False)
+        with open('static/dict/booleans.pckl', 'rb') as handle:
+            booleans = pickle.load(handle)
+        return render_template('terato.html', plates = dirs2, done=True, dict = booleans)
+    return render_template('terato.html', done=False, dict = {})
 
 @app.route('/cardio.html', methods=['GET', 'POST'])
 def cardio():

@@ -1,4 +1,5 @@
 @import url("https://use.fontawesome.com/releases/v5.14.0/css/all.css");
+@import url("https://fonts.googleapis.com/css?family=Lato:300");
 
 .body_index {
   background-image: url('/static/img/background.gif');
@@ -143,7 +144,7 @@ padding-right: 30px;
 
 .print{
 
-  top: 100px;
+  top: 50px;
   right:350px;
   position: fixed;
 
@@ -156,9 +157,17 @@ padding-right: 30px;
 
 .print1{
 
-  top: 280px;
+  top: 230px;
   right:350px;
   position: fixed;
+
+}
+.print2{
+
+  top: 430px;
+  right:350px;
+  position: fixed;
+  border: 2px;
 
 }
 
@@ -204,16 +213,58 @@ padding-right: 30px;
 .labels{
   margin: 0;
   position: fixed;
-  top:35%;
-  left: 6%;
+  top:38%;
+  left: 10%;
 
 }
-p{
-  font-size: 20px;
+.sel{
+  position: relative;
+  top:35px;
+  left:0px;
+  font-size: 19px;
   line-height: 1;
   font-family: 'Anton', sans-serif;
   color:white;
+  border-radius: 38px;
+
 }
+.check{
+  position: relative;
+  top:30px;
+  left:40px;
+}
+.bool {
+  font-size: 20px;
+  font-family: 'Anton', sans-serif;
+  border-spacing: 20px 0px;
+}
+
+.rectangle{
+  top:80px;
+  position: relative;
+  border: 5px solid white;
+  width:250px;
+  height: 275px;
+}
+
+.print_plate{
+  display: grid;
+  grid-template-columns: repeat(6  , 140px);
+  grid-template-rows: repeat(18, 28px);
+  top: 20px;
+  right:20px;
+  position: fixed;
+
+}
+
+.print_plate img {
+   height: 100%;
+   width: 100%;
+}
+/* .bool tr{
+  border-collapse:separate;
+  border-spacing:0;
+} */
 
 * {
   box-sizing: border-box;
@@ -323,7 +374,21 @@ input[type="checkbox"]:focus {
 .box {
   position: absolute;
 }
-
+.refresh{
+  -webkit-appearance: button;
+  appearance: button;
+  outline: none;
+  background-color: #0563af;
+  color: white;
+  border: none;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+  font-size: 20px;
+  width: 115px;
+  height: 80px;
+  top:375px;
+  left: 520px;
+  position: fixed;
+}
 .box select {
   background-color: #0563af;
   color: white;
@@ -361,4 +426,35 @@ input[type="checkbox"]:focus {
 
 .box select option {
   padding: 30px;
+}
+
+.gradient-border {
+  --border-width: 6px;
+  padding: 10px 10px 10px 10px;
+  position: relative;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  border-radius: var(--border-width);
+}
+.gradient-border::after {
+  position: absolute;
+  content: "";
+  top: calc(-1 * var(--border-width));
+  left: calc(-1 * var(--border-width));
+  z-index: -1;
+  width: calc(100% + var(--border-width) * 2);
+  height: calc(100% + var(--border-width) * 2);
+  background: linear-gradient(60deg, #44F2F2, #27DEF2, #1AB6D9, #0E3659, #7A36D9);
+  background-size: 300% 300%;
+  background-position: 0 50%;
+  border-radius: calc(2 * var(--border-width));
+  animation: moveGradient 4s alternate infinite;
+}
+
+@keyframes moveGradient {
+  50% {
+    background-position: 100% 50%;
+  }
 }

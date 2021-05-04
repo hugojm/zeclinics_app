@@ -6,6 +6,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css">  </head>
+
   <body class="body_terato">
     <div class="pos">
     <form method=post enctype=multipart/form-data>
@@ -140,43 +141,35 @@
 
     var pheno = ['Body curvature','Yolk edema','Necrosis','Tail Bending','Notochord defects','Craniofacial edema','Fin absence','Scoliosis','Snout jaw defects','Otoliths defects']
     var types = ["eyes_dorsal", "heart", "outline_dorsal", "outline_lateral", "ov", "yolk"];
-    var path = document.getElementById("comp_select").value;
 
-    {% if plates is defined and plates %}
-      var plate = {{ plates|tojson }};
-      var div = document.getElementById("lateral_div");
-      div.innerHTML = '';
-      var div2 = document.getElementById("dorsal_div");
-      div2.innerHTML = '';
-      document.getElementById("bool").style.display = "none";
-      plate.forEach((well) => {
-        var div = document.getElementById("plate");
-        div.innerHTML += '<img src={{url_for('static',filename= '')}}'+ well.substring(7) +'/lateral.png' + ' id="'+ well +'" onclick="image(this)"/>';
-        div.innerHTML += '<img src={{url_for('static',filename= '')}}'+ well.substring(7) +'/dorsal.png' + ' id="'+ well +'" onclick="image(this)"/>';
+    print_overview();
 
-      });
-    {% endif %}
-
-    function select_well(){
-      var path = document.getElementById("comp_select").value;
+// display overview
+    function print_overview(){
       {% if plates is defined and plates %}
-      var plate = {{ plates|tojson }};
-      {% endif %}
-
-      if (path == "default"){
+        var path = document.getElementById("comp_select").value;
+        var plate = {{ plates|tojson }};
         var div = document.getElementById("lateral_div");
         div.innerHTML = '';
         var div2 = document.getElementById("dorsal_div");
         div2.innerHTML = '';
         document.getElementById("bool").style.display = "none";
-        var div_plate = document.getElementById("plate");
-        div_plate.innerHTML = '';
         plate.forEach((well) => {
-          console.log(well)
-          div_plate.innerHTML += '<img src={{url_for('static',filename= '')}}'+ well.substring(7) +'/lateral.png' + ' id="'+ well +'" onclick="image(this)"/>';
-          div_plate.innerHTML += '<img src={{url_for('static',filename= '')}}'+ well.substring(7) +'/dorsal.png' + ' id="'+ well +'" onclick="image(this)"/>';
+          var div = document.getElementById("plate");
+          div.innerHTML += '<img src={{url_for('static',filename= '')}}'+ well.substring(7) +'/lateral.png' + ' id="'+ well +'" onclick="image(this)"/>';
+          div.innerHTML += '<img src={{url_for('static',filename= '')}}'+ well.substring(7) +'/dorsal.png' + ' id="'+ well +'" onclick="image(this)"/>';
 
         });
+      {% endif %}
+    };
+
+
+    function select_well(){
+      var path = document.getElementById("comp_select").value;
+
+      if (path == "default"){
+
+        print_overview();
 
       }else{
 
@@ -208,6 +201,7 @@
 
      };
 
+//masks display
     function calc(type)
       {
       var e = document.getElementById("comp_select");
@@ -225,12 +219,21 @@
       }
     };
 
+// display image selected in overview
     function image(element){
+
       document.getElementById("comp_select").value = element.id
       select_well();
+
     };
+
+// Return to overview
     function overview(){
       document.getElementById("comp_select").value = "default"
+      types.forEach((type) => {
+        var div = document.getElementById(type+"_div");
+        div.innerHTML = ''
+      });
       select_well();
     };
 

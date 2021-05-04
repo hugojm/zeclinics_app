@@ -1,5 +1,5 @@
 #
-# VERSION 1.4
+# VERSION 1.5
 #
 
 #
@@ -15,6 +15,9 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 
+#FOR optimization
+import gc
+
 from numpy import save
 from readlif.reader import LifFile
 from os import listdir
@@ -24,6 +27,9 @@ from PIL import Image
 def find_top_corner(in_shape,center_idx,out_shape,debug=False):
 # out shape = 1 number, shape of dimensions
 # in shape = array of input dimensions
+    if out_shape == "original":
+        return [0,0]
+
     top_left = [center_idx[0] - (out_shape/2),center_idx[1]-(out_shape/2)]
     if top_left[0] < 0: # esquerra
         top_left[0] = 0
@@ -41,10 +47,14 @@ def find_top_corner(in_shape,center_idx,out_shape,debug=False):
     return top_left
 
 def center_img(img,out_shape,top_left):
+    if out_shape=='original':
+        return img
+
     img = img[int(top_left[0]):int(top_left[0]+out_shape),int(top_left[1]):int(top_left[1]+out_shape)]
     return img
 
-def lifpreprocess(path,out_dir='output',index_of_interest=2,out_shape=256,store=False,debug=False):
+
+def lifpreprocess(path,out_dir='output',index_of_interest=2,out_shape='original',store=False,debug=False):
     start=time.time()
 
     #Read LIF files in the 'path' directory/file
@@ -75,6 +85,7 @@ def lifpreprocess(path,out_dir='output',index_of_interest=2,out_shape=256,store=
     if(debug):
         print("PREPROCESS: Elapsed time = ", time.time()-start)
 
+
     #If we dont want to store
     if(not store):
         if directory:
@@ -94,14 +105,7 @@ def lifpreprocess(path,out_dir='output',index_of_interest=2,out_shape=256,store=
         for j in range(len(current_img)):
             save(out_dir+path_files[i].split(".")[0]+"/"+path_files[i].split(".")[0]+"_"+str(j),current_img[j])
 
-
-######
-#EXECUTION:
-# import preprocess
-# lifpreprocess('path' --> path containging LIF files OR LIF file name (if only one), out_dir --> directory to store the output (only if path is a dir), index_of_interest --> index where the video is located in LIF, out_shape --> shape of output arrays (by default 256x256), store --> if we want to store the result in disk (default=False))
-######
-#EXAMPLE:
-# FOR FILE --> result = lifpreprocess('raw_data/20170102_SME_085.lif')
-# FOR DIR --> result = lifpreprocess('raw_data','output_batch_1')
-# WITH: Store = TRUE --> There's no return
-######
+    #FREE MEMORY#
+    del lif_imgs_frames
+    gc.collect()
+    #############

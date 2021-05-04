@@ -32,5 +32,26 @@
         <source src="{{ url_for('static', filename='videos/out.webm')}}" type="video/webm" codecs='vp8.0, vorbis'>
       </video>
     </div>
+    <div class="video2">
+      <video width="240" height="320" controls>
+        <source src="{{ url_for('static', filename='videos/out2.webm')}}" type="video/webm" codecs='vp8.0, vorbis'>
+      </video>
+    </div>
+    <div class="gradient-border" id="bool" style="height:300px;width:400px;top:50px;left:550px;">
+      <table class="bool" id="bool_text"> </table> </div>
+    </div>
+
     {% endif %}
+    <script type="text/javascript">
+        var keys = ['cardiac_arrest','longest_v','longest_a','shortest_v','shortest_a','ef_v','ef_a','qt_mean','arithmia_1','arithmia_2']
+        var data = {{ dict|tojson }};
+        var text = document.getElementById("bool_text");
+        text.innerHTML = '';
+        text.innerHTML += '<tr><th>Metric</th><th>Values</th></tr>';
+        keys.forEach((metric) => {
+          text.innerHTML += '<tr><td>'+ metric + '</td><td>' + data[metric] + '</td></tr>';
+        });
+        document.getElementById("bool").style.display = "flex";
+
+    </script>
   </body>

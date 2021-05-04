@@ -46,7 +46,7 @@ def print_mask(img_path,well_path, type):
         plt.clf()
         for i in [4,5]:
             mask = torch.split(outputs['out'].cpu(),1,0)[0].squeeze()[i].detach().numpy()
-            mask = np.ma.masked_where(mask < 0, mask)
+            mask = np.ma.masked_where(mask < -1, mask)
             plt.imshow(mask, cmaps[i], alpha = 0.7)
             plt.axis('off')
             part = name(i)
@@ -59,7 +59,7 @@ def print_mask(img_path,well_path, type):
         plt.clf()
         for i in range(4):
             mask = torch.split(outputs['out'].cpu(),1,0)[0].squeeze()[i].detach().numpy()
-            mask = np.ma.masked_where(mask < 0.1, mask)
+            mask = np.ma.masked_where(mask < -1, mask)
             plt.imshow(mask, cmaps[i], alpha = 0.7)
             plt.axis('off')
             part = name(i)
@@ -118,12 +118,12 @@ def plate(plate_name, upload_folder):
                 lateral_img_path = well_path + "/" + well.attrib['lateral_image']
                 image_name = plate_name + "_" + well_name
                 #This list will contain pairs of (path, image) that will be written at the end if there are no errors.
-                # try:
-                #     print_mask(lateral_img_path,well_path, "lateral")
-                #     print_mask(dorsal_img_path,well_path, "dorsal")
-                #     boolean(booleans, well_name, lateral_img_path, dorsal_img_path)
-                # except:
-                #     continue
-
+    #             try:
+    #                 print_mask(lateral_img_path,well_path, "lateral")
+    #                 print_mask(dorsal_img_path,well_path, "dorsal")
+    #                 boolean(booleans, well_name, lateral_img_path, dorsal_img_path)
+    #             except:
+    #                 continue
+    #
     # with open('static/dict/booleans.pckl', 'wb') as handle:
     #     pickle.dump(booleans, handle, protocol=pickle.HIGHEST_PROTOCOL)

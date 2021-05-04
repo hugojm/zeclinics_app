@@ -17,7 +17,7 @@ from process import process_video
 import heartpy as hp
 import matplotlib
 import pickle
-
+import time
 
 
 UPLOAD_FOLDER = 'static/images'
@@ -35,13 +35,20 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
+    if request.method == "POST":
+        time.sleep(1)
+        return render_template('upload.html')
     return render_template('index.html')
 
-@app.route('/home')
+@app.route('/home', methods=['GET', 'POST'])
 def home():
     return render_template('index.html')
+
+@app.route('/upload.html')
+def upload():
+    return render_template('upload.html')
 
 
 
@@ -59,7 +66,7 @@ def allowed_file_cardio(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS_CARDIO
 
-@app.route('/terato.html', methods=['GET', 'POST'])
+@app.route('/upload.html', methods=['GET', 'POST'])
 def upload_file():
     if request.method == "POST":
         files = request.files.getlist("file[]")
@@ -90,11 +97,13 @@ def cardio():
                 path_name = Path(file.filename)
                 path_name = os.path.join('./' , path_name)
                 matplotlib.use('agg')
-                masks , a , v, _ =process_video(path_name,update_it=1, skip=40, debug=True, gen_video=True, video_name=os.path.join(app.config['UPLOAD_FOLDER_CARDIO'],'out.webm'))
-                hp.plotter(a[5],a[6],show=False, title='Atrium signal').savefig(os.path.join(app.config['UPLOAD_FOLDER_CARDIO'],'out1.png'))
-                hp.plotter(v[5],v[6],show=False, title='Ventricle signal').savefig(os.path.join(app.config['UPLOAD_FOLDER_CARDIO'],'out2.png'))
-        return render_template('cardio.html', print=True)
-    return render_template('cardio.html')
+                # masks_a, masks_v , a , v, _ = process_video(path_name,update_it=4, skip=1, debug=True, gen_video=False, video_name=os.path.join(app.config['UPLOAD_FOLDER_CARDIO'],'out.webm'),mode="ac", p_out_shape="original")
+                # hp.plotter(a[1],a[2],show=False, title='Atrium signal').savefig(os.path.join(app.config['UPLOAD_FOLDER_CARDIO'],'out1.png'))
+                # hp.plotter(v[1],v[2],show=False, title='Ventricle signal').savefig(os.path.join(app.config['UPLOAD_FOLDER_CARDIO'],'out2.png'))
+        with open('static/dict/metrics.pckl', 'rb') as handle:
+            metrics = pickle.load(handle)
+        return render_template('cardio.html', print=True, dict = metrics)
+    return render_template('cardio.html', dict={})
 
 @app.context_processor
 def override_url_for():

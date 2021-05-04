@@ -1,5 +1,5 @@
 #
-# VERSION 2.1
+# VERSION 3.3
 #
 
 import sys
@@ -8,30 +8,32 @@ import numpy as np
 from os import listdir
 from os.path import isfile, join
 from preprocess import lifpreprocess
+from active_contours import ac_masks
+from nnet_cardio import nnet_masks
+import metrics as m
 
-import skimage
-from skimage.color import rgb2gray
-from skimage import data, img_as_float
-from skimage.filters import gaussian
-from skimage.segmentation import active_contour
-from skimage.segmentation import (morphological_chan_vese,
-                                  morphological_geodesic_active_contour,
-                                  inverse_gaussian_gradient,
-                                  checkerboard_level_set)
+import heartpy as hp
+import cv2
+import matplotlib.pyplot as plt
+
 from scipy.fftpack import fft
 from scipy.signal import butter, lfilter, filtfilt
 from scipy.signal import freqz
 from scipy import ndimage
-import heartpy as hp
-import cv2
-import matplotlib.pyplot as plt
+
+#FOR optimization
+import gc
 
 #FOR debugging
 import time
 
 
+
+
 def read(path):
-    start=time.time()
+    if debug:
+        start=time.time()
+        print("Reading files...")
 
     path_files = [f for f in listdir(path)]
 
@@ -61,6 +63,12 @@ def read(path):
             img_arrays[i]=np.load(path+'/'+path_files[i])
 
     print("READ & LOAD: Elapsed time = ", time.time()-start)
+
+    #FREE MEMORY#
+    del frames_arrays
+    gc.collect()
+    #############
+
     return img_arrays
 
 
@@ -84,9 +92,9 @@ def extract_metrics(atrium, ventricle, lowcut, highcut, fs):
     y_ventricle = y_ventricle[200:]
     vv, vm = hp.process(y_ventricle, fs)
 
-    v_bpm=vm['bpm'] #Get the ventricle bpm result to reduce atrium bpm variance
+    vbpm=vm['bpm']
 
-    y_atrium = butter_bandpass_filter(atrium, (v_bpm-5)/60, (v_bpm+5)/60, fs, order=1)
+    y_atrium = butter_bandpass_filter(atrium, max((vbpm/3)/60,(1/6)), min((vbpm*3)/60,(35/6)), fs, order=1)
     y_atrium = y_atrium[200:]
     av, am = hp.process(y_atrium, fs)
 
@@ -100,22 +108,26 @@ def convert_16_to_8(img):
     a = 255 / (imax - imin)
     b = 255 - a * imax
     new_img = (a * img + b).astype(np.uint8)
+
     return new_img
 
 
-def create_video(video_frames, masks, video_name, size, fps, debug):
+def create_video(video_frames, masks_a, masks_v, video_name, fps, debug):
 
     if debug:
-        print("Started Video Generation")
+        print("\nStarted Video Generation")
 
     start = time.time()
 
+    size=video_frames[0].shape
+
     frames_vid = [None]*len(video_frames)
     fourcc = cv2.VideoWriter_fourcc(*'VP80')
-    out = cv2.VideoWriter(video_name, fourcc, fps, (size, size), False)
+    out = cv2.VideoWriter(video_name, fourcc, fps, (size[1],size[0]), False)
     for i in range(0,len(video_frames)):
-        grad = ndimage.morphological_gradient(masks[i], size=(3,3))
-        frames_vid[i] = np.maximum(grad*(np.max(video_frames[i])+1),video_frames[i])
+        grad_v = ndimage.morphological_gradient(masks_v[i], size=(3,3))
+        grad_a = ndimage.morphological_gradient(masks_a[i], size=(3,3))
+        frames_vid[i] = np.maximum((grad_v+grad_a)*(np.max(video_frames[i])+1),video_frames[i])
         imgu8 = convert_16_to_8(frames_vid[i])
         out.write(imgu8)
     out.release()
@@ -123,42 +135,38 @@ def create_video(video_frames, masks, video_name, size, fps, debug):
     if debug:
         print("VIDEO: Elapsed time ",time.time()-start)
 
+    #FREE MEMORY#
+    del frames_vid
+    gc.collect()
+    #############
+
     return video_name
 
 
-def store_evolution_in(lst):
-    #Returns a callback function to store the evolution of the level sets in
-    # the given list.
-
-    def _store(x):
-        lst.append(np.copy(x))
-
-    return _store
-
-
-def process_video(input_video, base_it=50, update_it=4, skip=1, memory_it=1, border_removal=20, lowcut=(1/6), highcut=(35/6), freq_sample=76, p_index=2, p_out_shape=256, gen_video=False, video_name='output.webm', p_store=False, p_out_dir='output', debug=False):
+def process_video(input_video, base_it=50, update_it=4, skip=1, memory_it=1, border_removal=20, lowcut=(1/6), highcut=(35/6), freq_sample=76, p_index=2, p_out_shape='original', gen_video=False, video_name='output.webm', p_store=False, p_out_dir='output', mode='nn', debug=False):
     # FUNCTION TO PROCESS A LIST OF frames
-    # This function applies morphological_chan_vese to each frame,
+    # This function applies morphological_chain_vese to each frame,
     #   implemented with memory for efficiency.
     #
     # --> input_video: EITHER A LifFile, DIR OR AN ARRAY
     # --> base_it: active contour iterations for step 0
-    # --> update_it: active contour iterations for steps > 0 (lower precision required)
+    # --> update_it: active contour iterations for steps > 0 (lower precision required)
     # --> skip: parameter to add skipping to the algorithm (skip n frames every n+1)
     # --> memory_it: iteration which is passed to the following frame as baseline
     # --> border_removal: size of the border to remove in img and masks
     # --> lowcut & highcut: values for min and max bpm expected
     # --> freq_sample: fps of the raw video
     # --> p_index: index of the video in the LIF file (can be checked via ImageJ)
-    # --> p_out_shape: shape (n x n) of the output images
+    # --> p_out_shape: shape (n x n) of the output images, if 'original' mantain shape
+    # --> mode: 'nn', 'ac' or 'both'. If nn it uses nn, ac uses Active Contours, both uses nn for atrium and Active Contours for ventricle.
     #
     # # # EXTRA FEATURES --> SPACE CONSUMING # # #
     # --> gen_video: if TRUE, stores a video showing the segmentation
-    #   --> video_name: name of the output video (MUST END WITH .mp4)
+    #   --> video_name: name of the output video (MUST END WITH .webm)
     # --> p_store: boolean, if TRUE the result is stored locally
     #   --> p_out_dir: directory path to store the result
     #
-    # # # FOR DEVELOPERS # # #
+    # # # FOR DEVELOPERS # # #
     # --> debug: To print the execution status
     #
 
@@ -170,104 +178,92 @@ def process_video(input_video, base_it=50, update_it=4, skip=1, memory_it=1, bor
     else:
         video = input_video
 
-    masks=[None]*len(video)
+    #METRIC EXTRACTION
+    per_frame_a = [None]*len(video)
+    per_frame_v = [None]*len(video)
 
-    #For metric computation
-    area_per_frame_atrium = [None]*len(video)
-    area_per_frame_ventricle = [None]*len(video)
-    intens_per_frame_atrium = [None]*len(video)
-    intens_per_frame_ventricle = [None]*len(video)
-
-    if debug:
-        start = time.time()
-
-    inici = None
-    for i in range(len(video)):
-        evolution = []
-        if (debug and (i+1)%100==0):
-            print(" -> Processing frame ",i+1," of ",len(video))
-
-        if not skip or i%(skip+1)==0:
-            if i ==0:
-                init_ls = checkerboard_level_set(video[i].shape, 6)
-                iters=base_it
-            else:
-                init_ls = inici
-                iters=update_it
-
-            callback = store_evolution_in(evolution)
-            masks[i] = morphological_chan_vese(video[i], iters, init_level_set=init_ls, smoothing=3, iter_callback=callback)
-
-            if i==0:
-                inici = evolution[base_it-1]
-            else:
-                inici = evolution[memory_it]
-
+    if mode != 'ac':
+        if mode == 'both':
+            masks_a,_=nnet_masks(video,image=True,debug=debug)
+            masks_v=ac_masks(video,lowcut=lowcut,highcut=highcut,freq_sample=freq_sample,update_it=update_it,base_it=base_it,skip=skip,memory_it=memory_it,debug=debug)
         else:
-            masks[i] = masks[i-1]
+            masks_a,masks_v=nnet_masks(video,image=True,debug=debug)
 
-        #CROP THE EDGES OF THE MASK AND IMAGE
-        reduced = masks[i][border_removal:p_out_shape-border_removal, border_removal:p_out_shape-border_removal]
-        img = video[i][border_removal:p_out_shape-border_removal, border_removal:p_out_shape-border_removal]
+        if debug:
+            start = time.time()
+            print("\nExtracting metrics...")
 
-        unique, counts = np.unique(reduced, return_counts=True)
-        area_per_frame_ventricle[i] = min(counts)
-        area_per_frame_atrium[i] = None
+        for i in range(len(video)):
+            #CROP THE EDGES OF THE MASK AND IMAGE
+            reduced_v = masks_v[i][border_removal:-border_removal, border_removal:-border_removal]
+            reduced_a = masks_a[i][border_removal:-border_removal, border_removal:-border_removal]
+
+            img = video[i][border_removal:-border_removal, border_removal:-border_removal]
+
+            _, counts_v = np.unique(reduced_v, return_counts=True)
+            _, counts_a = np.unique(reduced_a, return_counts=True)
+
+            per_frame_v[i] = min(counts_v)
+            per_frame_a[i] = min(counts_a)
+
+    else:
+        masks_a=None
+        masks_v=ac_masks(video,lowcut=lowcut,highcut=highcut,freq_sample=freq_sample,update_it=update_it,base_it=base_it,skip=skip,memory_it=memory_it,debug=debug)
+
+        if debug:
+            start = time.time()
+            print("\nExtracting metrics...")
+
+        for i in range(len(video)):
+            #CROP THE EDGES OF THE MASK AND IMAGE
+            reduced_v = masks_v[i][border_removal:-border_removal, border_removal:-border_removal]
+            img = video[i][border_removal:-border_removal, border_removal:-border_removal]
+
+            unique, counts = np.unique(reduced_v, return_counts=True)
+            per_frame_v[i] = min(counts)
+            per_frame_a[i] = np.sum((1-reduced_v)*img)
+
+        per_frame_a = [x / max(per_frame_a) for x in per_frame_a]
 
 
-        intens_per_frame_atrium[i]=np.sum(reduced*img)
-        intens_per_frame_ventricle[i]=np.sum((1-reduced)*img)
-
-    intens_per_frame_atrium = [x / max(intens_per_frame_atrium) for x in intens_per_frame_atrium]
-    intens_per_frame_ventricle = [x / max(intens_per_frame_ventricle) for x in intens_per_frame_ventricle]
-
-    atrium=[intens_per_frame_atrium, min(intens_per_frame_atrium), max(intens_per_frame_atrium), None, area_per_frame_atrium] #NONE ES MEAN
-    ventricle=[intens_per_frame_ventricle, min(area_per_frame_ventricle), max(area_per_frame_ventricle), np.mean(area_per_frame_ventricle), area_per_frame_ventricle]
+    av,am,vv,vm=extract_metrics(per_frame_a, per_frame_v, lowcut, highcut, freq_sample)
 
     if debug:
-        print("PROCESS: Elapsed time = ",time.time()-start)
+        print("METRIC EXTRACTION: Elapsed time = ",time.time()-start)
 
-    av,am,vv,vm = extract_metrics(atrium=intens_per_frame_atrium,ventricle=area_per_frame_ventricle,lowcut=lowcut,highcut=highcut,fs=freq_sample)
-    atrium.append(av)
-    atrium.append(am)
-    ventricle.append(vv)
-    ventricle.append(vm)
-
+    video_path=None
     if gen_video:
-        video_path = create_video(video,masks,video_name=video_name,fps=freq_sample,size=p_out_shape,debug=debug)
+        video_path = create_video(video,masks_a=masks_a,masks_v=masks_v,video_name=video_name,fps=freq_sample,debug=debug)
 
-    return masks, atrium, ventricle, video_path
+    #FREE MEMORY#
+    del video
+    gc.collect()
+    #############
+
+    m.metrics([per_frame_a,av,am], [per_frame_v,vv,vm], freq_sample)
+
+    return masks_a, masks_v, [per_frame_a,av,am], [per_frame_v,vv,vm], video_path
 
 
-def process_dir(input_video_arrays, raw=True, p_out_dir='output', p_index=2, p_out_shape=256, p_store=False, debug=False):
+def process_dir(input_video_arrays, base_it=50, update_it=4, skip=1, memory_it=1, border_removal=20, lowcut=(1/6), highcut=(35/6), freq_sample=76, p_index=2, p_out_shape='original', gen_video=False, video_name='.webm', p_store=False, p_out_dir='output', debug=False):
+
     if isinstance(input_video_arrays, str):
-        if raw:
-            video_arrays = lifpreprocess(input_video_arrays,out_dir=p_out_dir,index_of_interest=p_index,out_shape=p_out_shape,store=p_store,debug=debug)
-        else:
-            video_arrays = read(input_video_arrays)
+        path_files = [f.split('.')[0] for f in listdir(input_video_arrays) if isfile(join(input_video_arrays, f))]
+        video_arrays = lifpreprocess(input_video_arrays,out_dir=p_out_dir,index_of_interest=p_index,out_shape=p_out_shape,store=p_store,debug=debug)
+
     else:
         video_arrays = input_video_arrays
+
     if(debug):
         print("Number of read videos: "+str(len(video_arrays)))
 
     masks = [None] * len(video_arrays)
     atrium, ventricle = [None] * len(video_arrays), [None] * len(video_arrays)
+    video_paths = [None] * len(video_arrays)
 
     for i in range(len(video_arrays)):
         if (debug):
-            print("Processing video ",i+1," of ",len(video_arrays))
-        masks[i],atrium[i],ventricle[i]=process_video(video_arrays[i],debug=debug)
-    return masks,atrium,ventricle
+            print("\nProcessing video ",i+1," of ",len(video_arrays))
+        masks[i],atrium[i],ventricle[i],video_paths[i]=process_video(input_video=video_arrays[i],base_it=base_it,update_it=update_it,skip=skip,memory_it=memory_it,border_removal=border_removal,lowcut=lowcut,highcut=highcut,freq_sample=freq_sample,p_index=p_index,p_out_shape=p_out_shape,gen_video=gen_video,video_name=path_files[i]+video_name,p_store=p_store,p_out_dir=p_out_dir,debug=debug)
 
-
-#########
-#EXECUTION:
-# import process
-# output = processdir('path' -> Directory with subfolders for each video, debug = T or F)
-#########
-#EXAMPLE:
-#masks,a,v,_=process_video("./20170102_SME_085.lif",debug=True,gen_video=True,update_it=1,skip=40)
-#print(len(a),len(v),v[6]['bpm'])
-#plt.imshow(p_vid[2270], cmap='gray')
-#plt.show()
-#########
+    return masks,atrium,ventricle,video_paths

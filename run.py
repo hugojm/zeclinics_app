@@ -44,6 +44,9 @@ def index():
 
 @app.route('/home', methods=['GET', 'POST'])
 def home():
+    if request.method == "POST":
+        time.sleep(1)
+        return render_template('upload.html')
     return render_template('index.html')
 
 @app.route('/upload.html')

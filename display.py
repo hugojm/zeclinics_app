@@ -118,12 +118,12 @@ def plate(plate_name, upload_folder):
                 lateral_img_path = well_path + "/" + well.attrib['lateral_image']
                 image_name = plate_name + "_" + well_name
                 #This list will contain pairs of (path, image) that will be written at the end if there are no errors.
-    #             try:
-    #                 print_mask(lateral_img_path,well_path, "lateral")
-    #                 print_mask(dorsal_img_path,well_path, "dorsal")
-    #                 boolean(booleans, well_name, lateral_img_path, dorsal_img_path)
-    #             except:
-    #                 continue
-    #
-    # with open('static/dict/booleans.pckl', 'wb') as handle:
-    #     pickle.dump(booleans, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                try:
+                    print_mask(lateral_img_path,well_path, "lateral")
+                    print_mask(dorsal_img_path,well_path, "dorsal")
+                    boolean(booleans, well_name, lateral_img_path, dorsal_img_path)
+                except:
+                    continue
+
+    with open('static/dict/booleans.pckl', 'wb') as handle:
+        pickle.dump(booleans, handle, protocol=pickle.HIGHEST_PROTOCOL)

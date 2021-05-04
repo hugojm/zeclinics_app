@@ -18,6 +18,8 @@ import heartpy as hp
 import matplotlib
 import pickle
 import time
+import random
+import threading
 
 
 UPLOAD_FOLDER = 'static/images'
@@ -39,19 +41,15 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 def index():
     if request.method == "POST":
         time.sleep(1)
-        return render_template('upload.html')
+        return redirect('upload.html')
     return render_template('index.html')
 
 @app.route('/home', methods=['GET', 'POST'])
 def home():
     if request.method == "POST":
         time.sleep(1)
-        return render_template('upload.html')
+        return redirect('upload.html')
     return render_template('index.html')
-
-@app.route('/upload.html')
-def upload():
-    return render_template('upload.html')
 
 
 
@@ -89,7 +87,7 @@ def upload_file():
         with open('static/dict/booleans.pckl', 'rb') as handle:
             booleans = pickle.load(handle)
         return render_template('terato.html', plates = dirs2, done=True, dict = booleans)
-    return render_template('terato.html', done=False, dict = {})
+    return render_template('upload.html')
 
 @app.route('/cardio.html', methods=['GET', 'POST'])
 def cardio():

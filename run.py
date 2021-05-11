@@ -86,7 +86,7 @@ def upload_file():
         dirs2.sort()
         with open('static/dict/booleans.pckl', 'rb') as handle:
             booleans = pickle.load(handle)
-        return render_template('terato.html', plates = dirs2, done=True, dict = booleans)
+        return render_template('terato2.html', plates = dirs2, done=True, dict = booleans)
     return render_template('upload.html')
 
 @app.route('/cardio.html', methods=['GET', 'POST'])

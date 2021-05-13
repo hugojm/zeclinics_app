@@ -89,7 +89,6 @@
 {
 
   width: 25%;
-  height: 25%;
 
 }
 
@@ -369,6 +368,7 @@ padding-right: 30px;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
 }
 .body_upload{
   display: flex;
@@ -378,10 +378,9 @@ padding-right: 30px;
   background: #FBDF7D;
 }
 .drag-area{
-  border: 2px dashed #000000;
+  position: relative;
   height: 500px;
   width: 700px;
-  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -393,6 +392,7 @@ padding-right: 30px;
 .drag-area .icon{
   font-size: 100px;
   color: #000000;
+  padding-top: 200px:
 }
 .drag-area header{
   font-size: 30px;
@@ -415,6 +415,7 @@ padding-right: 30px;
   color: #FBDF7D;
   border-radius: 5px;
   cursor: pointer;
+  z-index: 2;
 }
 .drag-area img{
   height: 100%;
@@ -423,6 +424,68 @@ padding-right: 30px;
   border-radius: 5px;
 }
 
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+.body_upload{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #FBDF7D;
+}
+.drag-area2{
+  position: relative;
+  height: 500px;
+  width: 700px;
+  border: 2px dashed #000000;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+.drag-area2.active{
+  border: 2px solid #000000;
+}
+.drag-area2 .icon{
+  font-size: 100px;
+  color: #000000;
+  padding-top: 200px:
+}
+.drag-area2 header{
+  font-size: 30px;
+  font-weight: 500;
+  color: #000000;
+}
+.drag-area2 span{
+  font-size: 25px;
+  font-weight: 500;
+  color: #000000;
+  margin: 10px 0 15px 0;
+}
+.drag-area2 button{
+  padding: 10px 25px;
+  font-size: 20px;
+  font-weight: 500;
+  border: none;
+  outline: none;
+  background: #000000;
+  color: #7bd3cb;
+  border-radius: 5px;
+  cursor: pointer;
+  z-index: 2;
+}
+.drag-area2 img{
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 5px;
+}
 
 /* Generated on: Tue May 04 2021 18:07:19 GMT+0000 (Coordinated Universal Time) */
 /* ==========================================================================
@@ -549,6 +612,48 @@ padding-right: 30px;
   height: 100vh;
   background-color: #fbdb7c;
 }
+.basura{
+    height:0%;
+    width:0%;
+    border-radius: 5px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    opacity: 0;
+}
+.basura.grande{
+    height:100%;
+    width:100%;
+}
+
+
+.basura2{
+    position: absolute;
+    height:100%;
+    width:100%;
+    border: 2px dashed #000000;
+    border-radius: 5px;
+    z-index: 1;
+}
+.basura2.active2{
+  z-index: 100;
+  border: 2px solid #000000;
+}
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+.body_upload_cardio{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #7bd3cb;
+}
+
 
 /* The container */
 .container {
@@ -586,7 +691,6 @@ padding-right: 30px;
   width: 25px;
   background-color: #eee;
   border: 1px solid #ccc;
-  border-radius: 50%;
   margin: 0 0 0 -2px;
   cursor: pointer;
 

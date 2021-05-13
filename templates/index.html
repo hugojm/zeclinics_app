@@ -19,14 +19,20 @@
     <body class="body-2">
         <div class="div-block">
             <div class="div-block-4">
-              <form method=post enctype=multipart/form-data>
+              <form method=post>
                <label>
-                 <img src="{{url_for('static',filename= 'img/terato_menu.png')}}" loading="lazy" width="1007" data-w-id="68d32a7e-873b-b501-7066-77e2c8f34c6f" srcset="{{url_for('static',filename= 'img/terato_menu.png')}} 500w, {{url_for('static',filename= 'img/terato_menu.png')}} 1058w" sizes="55vw" alt="" class="image"/>
-                 <input type=submit name=Upload style="display:none">
+                 <img src="{{url_for('static',filename= 'img/terato_menu.png')}}" loading="eager" width="1007" data-w-id="68d32a7e-873b-b501-7066-77e2c8f34c6f" srcset="{{url_for('static',filename= 'img/terato_menu.png')}} 500w, {{url_for('static',filename= 'img/terato_menu.png')}} 1058w" sizes="55vw" alt="" class="image"/>
+                 <input type=submit name="upload" style="display:none">
                </label>
+             </form>
             </div>
             <div class="div-block-3">
-                <img src="{{url_for('static',filename= 'img/cardio_menu.png')}}" loading="lazy" data-w-id="89b95862-5d61-c348-20ed-6e4ad02185af" sizes="55vw" srcset="{{url_for('static',filename= 'img/cardio_menu.png')}} 500w, {{url_for('static',filename= 'img/cardio_menu.png')}} 1056w" alt="" class="image-2"/>
+              <form method=post>
+               <label>
+                <img src="{{url_for('static',filename= 'img/cardio_menu.png')}}" loading="eager" data-w-id="89b95862-5d61-c348-20ed-6e4ad02185af" sizes="55vw" srcset="{{url_for('static',filename= 'img/cardio_menu.png')}} 500w, {{url_for('static',filename= 'img/cardio_menu.png')}} 1056w" alt="" class="image-2"/>
+                <input type=submit name="upload_cardio" style="display:none">
+               </label>
+              </form>
             </div>
         </div>
         <script src="{{url_for('static',filename= 'js/jquery.min.js')}}" type="text/javascript" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>

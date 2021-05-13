@@ -39,18 +39,32 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    print('Youre in /')
     if request.method == "POST":
+        print('In / requested', request.form.to_dict().keys())
         time.sleep(1)
-        return redirect('upload.html')
+        if list(request.form.to_dict().keys())[0] == 'upload':
+            return redirect('upload.html')
+        return redirect('upload_cardio.html')
     return render_template('index.html')
 
 @app.route('/home', methods=['GET', 'POST'])
 def home():
+    print("Youre in home")
     if request.method == "POST":
+        print('In home requested', request.form.to_dict().keys())
         time.sleep(1)
-        return redirect('upload.html')
+        if list(request.form.to_dict().keys())[0] == 'upload':
+            return redirect('upload.html')
+        return redirect('upload_cardio.html')
     return render_template('index.html')
 
+@app.route('/upload_cardio.html', methods=['GET', 'POST'])
+def upload_cardio():
+    print('You in cardio')
+    if request.method == "POST":
+        files = request.files.getlist("file[]")
+    return render_template('upload_cardio.html')
 
 
 @app.route('/uploads/<filename>')
@@ -71,15 +85,15 @@ def allowed_file_cardio(filename):
 def upload_file():
     if request.method == "POST":
         files = request.files.getlist("file[]")
-        plate_name = Path(files[1].filename).parent.parts[0]
         for file in files:
             if file and allowed_file(file.filename):
                 path_name = Path(file.filename)
-                if (Path(os.path.join(app.config['UPLOAD_FOLDER'],path_name.parent)).exists() == False):
-                    os.mkdir(os.path.join(app.config['UPLOAD_FOLDER'],path_name.parent))
+                if (not Path(os.path.join(app.config['UPLOAD_FOLDER'], path_name.parent)).exists()):
+                    os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], path_name.parent))
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], path_name))
-        plate(plate_name,app.config['UPLOAD_FOLDER'])
+        print(os.listdir(app.config['UPLOAD_FOLDER']))
+    #    plate(app.config['UPLOAD_FOLDER'])
         dirname = os.path.join(app.config['UPLOAD_FOLDER'], plate_name)
         dirs = [ name for name in os.listdir(dirname) if os.path.isdir(os.path.join(dirname, name)) ]
         dirs2 = [dirname+ "/" + sub for sub in dirs]
@@ -88,6 +102,24 @@ def upload_file():
             booleans = pickle.load(handle)
         return render_template('terato2.html', plates = dirs2, done=True, dict = booleans)
     return render_template('upload.html')
+
+'''
+                if (not Path(os.path.join(app.config['UPLOAD_FOLDER'],path_name.parent)).exists()):
+                    os.mkdir(os.path.join(app.config['UPLOAD_FOLDER'],path_name.parent))
+
+
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], path_name))
+        plate(app.config['UPLOAD_FOLDER'])
+        dirname = os.path.join(app.config['UPLOAD_FOLDER'], plate_name)
+        dirs = [ name for name in os.listdir(dirname) if os.path.isdir(os.path.join(dirname, name)) ]
+        dirs2 = [dirname+ "/" + sub for sub in dirs]
+        dirs2.sort()
+        with open('static/dict/booleans.pckl', 'rb') as handle:
+            booleans = pickle.load(handle)
+        return render_template('terato.html', plates = dirs2, done=True, dict = booleans)
+    return render_template('upload.html')
+'''
 
 @app.route('/cardio.html', methods=['GET', 'POST'])
 def cardio():

@@ -8,18 +8,6 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css">  </head>
 
   <body class="body_terato">
-    <!-- <div class="pos">
-    <form method=post enctype=multipart/form-data>
-      <label>
-        <img src="{{url_for('static',filename= 'img/file_but.png')}}" class="but_file">
-        <input type=file name='file[]' style="display:none" webkitdirectory mozdirectory />
-      </label>
-      <label>
-        <img src="{{url_for('static',filename= 'img/upload_but.png')}}" class="but_upload">
-        <input type=submit name=Upload style="display:none">
-      </label>
-    </form>
-  </div> -->
   <div class="home">
     <a href="{{ url_for('home') }}"><img class="but_home" src="{{url_for('static',filename='img/home_but.png')}}"></a>
   </div>
@@ -129,7 +117,8 @@
           <div class="print" id ="yolk_div"> </div>
           <div class="print2" id ="bool_div">
           <div class="bool_menu" id="bool">
-            <table class="bool" id="bool_text"> </table> </div>
+            <table class="bool" id="bool_text"> </table>
+          </div>
           </div>
           <button type="button" id="left_arrow" class="left_but" onclick="get_position('izquierda')" name="izquierda"><i class="arrow left"></i></button>
           <button type="button" id="right_arrow" class="right_but" onclick="get_position('derecha')" name="derecha"><i class="arrow right"></i></button>
@@ -257,7 +246,7 @@
         var well = out[out.length - 1];
         var text = document.getElementById("bool_text");
         text.innerHTML = '';
-        text.innerHTML += '<tr><th>Phenotype</th><th>Probability</th></tr>';
+        text.innerHTML += '<tr><th style="padding-bottom: 20px;">Phenotype</th><th style="padding-bottom: 20px;">Probability</th></tr>';
         for (var i = 0; i <= 9; i++){
             if (data[well][i].toFixed(3) > 0.5){
               text.innerHTML += '<tr><td>'+ pheno[i]+ '</td><td><span style="color: #ff0000">' + data[well][i].toFixed(3) + '</td></tr></span>';

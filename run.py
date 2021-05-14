@@ -92,16 +92,35 @@ def upload_file():
                     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], path_name.parent))
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], path_name))
-        print(os.listdir(app.config['UPLOAD_FOLDER']))
-    #    plate(app.config['UPLOAD_FOLDER'])
+        plate_name = Path(files[0].filename).parent.parent
+        if plate_name == Path('.'):
+            plate_name = Path(files[0].filename).parent
+        plate(app.config['UPLOAD_FOLDER'],str(plate_name))
         dirname = os.path.join(app.config['UPLOAD_FOLDER'], plate_name)
         dirs = [ name for name in os.listdir(dirname) if os.path.isdir(os.path.join(dirname, name)) ]
         dirs2 = [dirname+ "/" + sub for sub in dirs]
         dirs2.sort()
-        with open('static/dict/booleans.pckl', 'rb') as handle:
+        with open('static/dict/' + str(plate_name) + '.pckl', 'rb') as handle:
             booleans = pickle.load(handle)
         return render_template('terato2.html', plates = dirs2, done=True, dict = booleans)
-    return render_template('upload.html')
+    processed = os.listdir(app.config['UPLOAD_FOLDER'])
+    return render_template('upload.html', process = processed)
+
+@app.route('/terato', methods=['GET', 'POST'])
+def terato():
+    if request.method == 'POST':
+        plate_name = request.form['submit_button']
+        dirname = os.path.join(app.config['UPLOAD_FOLDER'], plate_name)
+        dirs = [ name for name in os.listdir(dirname) if os.path.isdir(os.path.join(dirname, name)) ]
+        dirs2 = [dirname+ "/" + sub for sub in dirs]
+        dirs2.sort()
+        with open('static/dict/' + str(plate_name) + '.pckl', 'rb') as handle:
+            booleans = pickle.load(handle)
+        return render_template('terato2.html', plates = dirs2, dict = booleans)
+    else:
+        print("fail")
+
+
 
 '''
                 if (not Path(os.path.join(app.config['UPLOAD_FOLDER'],path_name.parent)).exists()):
@@ -133,6 +152,10 @@ def cardio():
                 # masks_a, masks_v , a , v, _ = process_video(path_name,update_it=4, skip=1, debug=True, gen_video=False, video_name=os.path.join(app.config['UPLOAD_FOLDER_CARDIO'],'out.webm'),mode="ac", p_out_shape="original")
                 # hp.plotter(a[1],a[2],show=False, title='Atrium signal').savefig(os.path.join(app.config['UPLOAD_FOLDER_CARDIO'],'out1.png'))
                 # hp.plotter(v[1],v[2],show=False, title='Ventricle signal').savefig(os.path.join(app.config['UPLOAD_FOLDER_CARDIO'],'out2.png'))
+        with open('static/dict/metrics.pckl', 'rb') as handle:
+            metrics = pickle.load(handle)
+        return render_template('cardio.html', print=True, dict = metrics)
+    else:
         with open('static/dict/metrics.pckl', 'rb') as handle:
             metrics = pickle.load(handle)
         return render_template('cardio.html', print=True, dict = metrics)

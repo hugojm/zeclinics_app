@@ -5,18 +5,6 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename= 'css/style.css') }}">
   </head>
   <body class="body_cardio">
-    <div class="pos">
-    <form method=post enctype=multipart/form-data>
-      <label>
-        <img src="{{url_for('static',filename= 'img/file_but.png')}}" class="but_file">
-        <input type=file name='file[]' style="display:none" webkitdirectory mozdirectory />
-      </label>
-      <label>
-        <img src="{{url_for('static',filename= 'img/upload_but.png')}}" class="but_upload">
-        <input type=submit name=Upload style="display:none">
-      </label>
-    </form>
-    </div>
     <div class="home">
       <a href="{{ url_for('home') }}"><img class="but_home" src="{{url_for('static',filename='img/home_but.png')}}"></a>
     </div>
@@ -24,32 +12,29 @@
     <div class="graphic1">
       <img src="{{url_for('static',filename= 'videos/out1.png')}}" style="width: 100%;height: 100%;"/>
     </div>
-    <div class="graphic2">
-          <img src="{{url_for('static',filename= 'videos/out2.png')}}" style="width: 100%;height: 100%;"/>
-    </div>
     <div class="video">
-      <video width="240" height="320" controls>
+      <video width="540" height="620" controls>
         <source src="{{ url_for('static', filename='videos/out.webm')}}" type="video/webm" codecs='vp8.0, vorbis'>
       </video>
     </div>
-    <div class="video2">
-      <video width="240" height="320" controls>
-        <source src="{{ url_for('static', filename='videos/out2.webm')}}" type="video/webm" codecs='vp8.0, vorbis'>
-      </video>
-    </div>
-    <div class="gradient-border" id="bool" style="height:300px;width:400px;top:50px;left:550px;">
-      <table class="bool" id="bool_text"> </table> </div>
+    <div class="metrics_menu" id="bool" >
+      <table class="metrics" id="bool_text"> </table> </div>
     </div>
 
     {% endif %}
     <script type="text/javascript">
         var keys = ['cardiac_arrest','longest_v','longest_a','shortest_v','shortest_a','ef_v','ef_a','qt_mean','arithmia_1','arithmia_2']
+        var metrics = {'cardiac_arrest' :'Cardiac Arrest' , 'longest_v': 'Longest time w/o a beat ventricle' , 'longest_a': 'Longest time w/o a beat atrium', 'shortest_v' : 'Shortest time w/o a beat ventricle' , 'shortest_a' : 'Shortest time w/o a beat atrium', 'ef_v' : 'Ejection Fraction ventricle', 'ef_a' : 'Ejection Fraction atrium', 'qt_mean': 'Qt mean', 'arithmia_1': 'Arithmia by longest/shortest', 'arithmia_2' : 'Arithmia by longest/shortest'};
         var data = {{ dict|tojson }};
         var text = document.getElementById("bool_text");
         text.innerHTML = '';
-        text.innerHTML += '<tr><th>Metric</th><th>Values</th></tr>';
+        text.innerHTML += '<tr><th style="padding-bottom: 20px;">Metric</th><th style="padding-bottom: 20px;">Values</th></tr>';
         keys.forEach((metric) => {
-          text.innerHTML += '<tr><td>'+ metric + '</td><td>' + data[metric] + '</td></tr>';
+          if(isNaN(parseFloat(data[metric]))){
+            text.innerHTML += '<tr><td>'+ metrics[metric] + '</td><td>' + data[metric] + '</td></tr>';
+          }else{
+            text.innerHTML += '<tr><td>'+ metrics[metric] + '</td><td>' + parseFloat(data[metric]).toFixed(3) + '</td></tr>';
+          }
         });
         document.getElementById("bool").style.display = "flex";
 

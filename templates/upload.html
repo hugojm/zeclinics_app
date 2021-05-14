@@ -31,6 +31,14 @@
     </div>
   </div>
 <div id="errorBlock" class="help-block"></div>
+<div id="process_list">
+  {% for files in process %}
+  <form action="/terato" method="post">
+    <input type="submit" name="submit_button" value="{{files}}">
+  </form>
+  {% endfor %}
+</div>
+
 <script>
 $(document).on('ready', function() {
     $("#input-folder-2").fileinput({

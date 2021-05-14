@@ -15,14 +15,9 @@
 }
 
 .body_cardio {
-  background-image: url('/static/img/background_cardio.gif');
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-size: 100% 100%;
-  position: relative;
+  background-color: #7bd3cb;
+  font-family: 'Roboto', sans-serif;
 }
-
-
 
 .center {
   margin: 0;
@@ -142,8 +137,8 @@ padding-right: 30px;
 }
 
 .print img {
-   height: 150%;
-   width: 150%;
+   height: 100%;
+   width: 100%;
 }
 
 .print1{
@@ -164,42 +159,24 @@ padding-right: 30px;
 }
 
 .print1 img {
-   height: 150%;
+   height: 100%;
    width: 150%;
 }
 
 .graphic1{
   position: fixed;
-  top: 40px;
-  right:1px;
-  right:50px;
+  right:13%;
+  top:10%;
   height: 45%;
   width: 35%;
 
 }
-
-
-
-.graphic2{
-  position: fixed;
-  top: 450px;
-  right:50px;
-  height: 45%;
-  width: 35%;
-}
-
 
 .video{
   position: fixed;
-  top: 37%;
-  left:4%;
+  top: 10%;
+  left:10%;
 }
-.video2{
-  position: fixed;
-  top: 37%;
-  left:20%;
-}
-
 
 .selector{
   position: fixed;
@@ -233,9 +210,9 @@ padding-right: 30px;
 .bool {
   font-size: 20px;
   font-family: 'Roboto', sans-serif;
+  color: black;
   border-spacing: 20px 0px;
   border-collapse:separate;
-  border-spacing:2  0px 0px;
 
 }
 .bool_menu{
@@ -246,6 +223,28 @@ padding-right: 30px;
   right:20%;
   position: fixed;
 }
+.metrics {
+  font-size: 20px;
+  font-family: 'Roboto', sans-serif;
+  color: black;
+  border-spacing: 50px 0px;
+  border-collapse:separate;
+
+}
+
+
+
+.metrics_menu{
+  padding-top: 10px;
+  padding-bottom:10px;
+  border: 5px solid black;
+  bottom:10%;
+  right:13%;
+  height: 32%;
+  width: 35%;
+  position: fixed;
+}
+
 .rectangle{
   top:80px;
   position: relative;
@@ -442,8 +441,6 @@ padding-right: 30px;
   position: relative;
   height: 500px;
   width: 700px;
-  border: 2px dashed #000000;
-  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;

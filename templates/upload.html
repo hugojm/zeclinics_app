@@ -31,10 +31,13 @@
     </div>
   </div>
 <div id="errorBlock" class="help-block"></div>
-<div id="process_list">
+
+
+<div id="process_list" class="processed">
+  <h1>Processed Plates</h1>
   {% for files in process %}
   <form action="/terato" method="post">
-    <input type="submit" name="submit_button" value="{{files}}">
+    <button name="submit_button" value="{{files}}">{{files}}</button>
   </form>
   {% endfor %}
 </div>

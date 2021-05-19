@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- <title>Drag & Drop or Browse: File Upload | CodingNepal</title> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
 </head>
@@ -36,10 +37,15 @@
 <div id="process_list" class="processed">
   <h1>Processed Plates</h1>
   {% for files in process %}
+  <div class="form-inline">
   <form action="/terato" method="post">
     <button name="submit_button" value="{{files}}">{{files}}</button>
   </form>
+    <button name="delete_button" value="delete" style="margin-left:10px;" onclick="delete_plate_java('{{files}}')"><i class="fa fa-trash" aria-hidden="true"></i></button>
+
+  </div>
   {% endfor %}
+
 </div>
 
 <script>
@@ -82,6 +88,34 @@ $(document).on('ready', function() {
         }
     });
 });
+</script>
+<script type="text/javascript">
+var delete_plate;
+
+$().ready(function(){
+    //jQuery function
+    delete_plate = function( _msg )
+    {
+      console.log(_msg)
+      $.ajax({
+        type : 'POST',
+        dataType: 'json',
+        url : "{{url_for('deleteplate')}}",
+        contentType: 'application/json;charset=UTF-8',
+        data : JSON.stringify(_msg)
+      });
+    }
+})
+
+function delete_plate_java(plate){
+  var result = confirm("Want to delete " + plate + "?");
+  if (result) {
+    delete_plate(plate);
+    location.reload();
+  }
+
+
+};
 </script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>

@@ -10,12 +10,13 @@ from torchvision import transforms
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 import numpy as np
-from display import plate
+import display as Tox
 from pathlib import Path
 from flask import json
 from process import process_video
 import heartpy as hp
 import matplotlib
+import json
 import pickle
 import time
 import random
@@ -35,7 +36,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 ui = FlaskUI(app, width=3000, height=3000, maximized=True)
 
-
+device = 'cpu'
 @app.route('/', methods=['GET', 'POST'])
 def index():
     print('Youre in /')
@@ -65,7 +66,8 @@ def upload_cardio():
     print('You in cardio')
     if request.method == "POST":
         files = request.files.getlist("file[]")
-    return render_template('upload_cardio.html')
+    processed = os.listdir(app.config['UPLOAD_FOLDER_CARDIO'])
+    return render_template('upload_cardio.html',process=processed)
 
 
 @app.route('/uploads/<filename>')
@@ -99,15 +101,18 @@ def upload_file():
         plate_name = Path(files[0].filename).parent.parent
         if plate_name == Path('.'):
             plate_name = Path(files[0].filename).parent
-        plate(app.config['UPLOAD_FOLDER'], str(plate_name))
         dirname = os.path.join(app.config['UPLOAD_FOLDER'], plate_name)
+        Tox.generate_and_save_predictions(str(dirname), batch_size=4,
+                                          model_path_seg='static/weight/weights.pt',
+                                          model_path_bools='static/weight/weights_bool.pt',
+                                          mask_names=["outline_lat", "heart_lat", "yolk_lat", "ov_lat", "eyes_dor", "outline_dor"],
+                                          feno_names=['bodycurvature', 'yolkedema', 'necrosis', 'tailbending', 'notochorddefects', 'craniofacialedema', 'finabsence', 'scoliosis','snoutjawdefects'],
+                                          device=device)
         dirs = [name for name in os.listdir(
             dirname) if os.path.isdir(os.path.join(dirname, name))]
         dirs2 = [dirname + "/" + sub for sub in dirs]
         dirs2.sort()
-        with open('static/dict/' + str(plate_name) + '.pckl', 'rb') as handle:
-            booleans = pickle.load(handle)
-        return render_template('terato2.html', plates=dirs2, done=True, dict=booleans)
+        return render_template('terato2.html', plates=dirs2, done=True)
     processed = os.listdir(app.config['UPLOAD_FOLDER'])
     return render_template('upload.html', process=processed)
 
@@ -166,6 +171,32 @@ def cardio():
             metrics = pickle.load(handle)
         return render_template('cardio.html', print=True, dict=metrics)
     return render_template('cardio.html', dict={})
+
+
+@app.route('/getmask/', methods=['GET','POST'])
+def getmask():
+      if request.method == "POST":
+          data = json.loads(request.data)
+          print(data)
+      return 'hola'
+
+@app.route('/deletetemp/', methods=['GET','POST'])
+def deletetemp():
+      if request.method == "POST":
+          os.remove()
+      return 'hola'
+
+@app.route('/deleteplate/', methods=['GET','POST'])
+def deleteplate():
+      if request.method == "POST":
+          data = json.loads(request.data)
+          try:
+              os.rmdir(UPLOAD_FOLDER+ '/' + data)
+          except:
+              os.remove(UPLOAD_FOLDER+ '/' + data)
+          print('hola', data)
+      return 'hola'
+
 
 
 @app.context_processor

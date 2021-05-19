@@ -6,7 +6,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css">  </head>
-
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
   <body class="body_terato">
   <div class="home">
     <a href="{{ url_for('home') }}"><img class="but_home" src="{{url_for('static',filename='img/home_but.png')}}"></a>
@@ -214,6 +214,37 @@
     };
 
 
+    var sendmask;
+
+    var deletetemp;
+    $().ready(function(){
+        //jQuery function
+        deletetemp = function()
+        {
+          $.ajax({
+            type : 'POST',
+            url : "{{url_for('deletetemp')}}"
+          });
+        }
+    })
+
+    $().ready(function(){
+        //jQuery function
+        sendmask = function( _msg )
+        {
+          console.log(_msg)
+          $.ajax({
+            type : 'POST',
+            dataType: 'json',
+            url : "{{url_for('getmask')}}",
+            contentType: 'application/json;charset=UTF-8',
+            data : JSON.stringify(_msg)
+          });
+        }
+    })
+
+
+
     function select_well(){
       document.getElementById("boolean_menu").style.display = "none";
       document.getElementById("mask_menu").style.display = "block";
@@ -222,8 +253,10 @@
       if (path == "default"){
 
         print_overview(position);
+        deletetemp();
 
       }else{
+        sendmask(path);
         var overview = document.getElementById("overview");
         overview.style.display = "block";
         var left = document.getElementById("right_arrow");

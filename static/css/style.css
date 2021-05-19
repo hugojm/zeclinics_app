@@ -357,7 +357,7 @@
 }
 
 .drag-area {
-  position: relative;
+  position: fixed;
   height: 500px;
   width: 700px;
   display: flex;
@@ -425,10 +425,14 @@
 }
 
 .processed {
-  position: fixed;
+  position: absolute;
   top: 20%;
   right: 5%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  display: inline-block;
 }
+
 
 .processed button {
   padding: 10px 25px;
@@ -442,7 +446,10 @@
   cursor: pointer;
   z-index: 2;
   margin-bottom: 10px;
+  display:inline-block;
 }
+
+
 
 .processed h1 {
   color: #000000;
@@ -451,7 +458,7 @@
 }
 
 .drag-area2 {
-  position: relative;
+  position: fixed;
   height: 500px;
   width: 700px;
   display: flex;

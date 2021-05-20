@@ -433,7 +433,6 @@
   display: inline-block;
 }
 
-
 .processed button {
   padding: 10px 25px;
   font-size: 20px;
@@ -446,10 +445,8 @@
   cursor: pointer;
   z-index: 2;
   margin-bottom: 10px;
-  display:inline-block;
+  display: inline-block;
 }
-
-
 
 .processed h1 {
   color: #000000;

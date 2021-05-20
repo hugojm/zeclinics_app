@@ -6,14 +6,18 @@ from flask import send_from_directory
 from PIL import Image, ImageTk
 import os
 import torch
+from read_roi import read_roi_file
+import cv2
+import imageio
+import scipy.misc
 from torchvision import transforms
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 import numpy as np
-import display as Tox
+import terato.display as Tox
 from pathlib import Path
 from flask import json
-from process import process_video
+from cardio.process import process_video
 import heartpy as hp
 import matplotlib
 import json
@@ -22,6 +26,8 @@ import time
 import random
 import threading
 from flaskwebgui import FlaskUI  # import FlaskUI
+import xml.etree.ElementTree as ET
+from tqdm import tqdm
 
 UPLOAD_FOLDER = 'static/images'
 UPLOAD_FOLDER_CARDIO = 'static/videos'
@@ -37,6 +43,8 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 ui = FlaskUI(app, width=3000, height=3000, maximized=True)
 
 device = 'cpu'
+
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     print('Youre in /')
@@ -67,7 +75,7 @@ def upload_cardio():
     if request.method == "POST":
         files = request.files.getlist("file[]")
     processed = os.listdir(app.config['UPLOAD_FOLDER_CARDIO'])
-    return render_template('upload_cardio.html',process=processed)
+    return render_template('upload_cardio.html', process=processed)
 
 
 @app.route('/uploads/<filename>')
@@ -85,6 +93,76 @@ def allowed_file_cardio(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS_CARDIO
 
+def dict_from_xml(plate_path, plate_name):
+    dic_images = {}
+    dic_feno = {}
+    xml_path = plate_path + "/" + plate_name + ".xml"
+    tree = ET.parse(xml_path)
+    plate = tree.getroot()
+    for well in tqdm(plate):
+        well_name = 'Well_' + well.attrib['name']
+        dic_feno[well_name] = {}
+        dic_images[well_name] = [well.attrib['dorsal_image'],well.attrib['lateral_image']]
+        for feno in well:
+            dic_feno[well_name][feno.tag] = feno.attrib['probability']
+    return dic_images, dic_feno
+
+#roi path
+#mask_name (p ej. eye_up_dorsal, fishoutline_dorsal,...) - >es el nombre del roi sin el .roi
+def create_mask(roi_paths, mask_name):
+
+    #colors in BGR
+    colors = {
+        "eye_up_dorsal": [0,177,204,116],
+        "eye_down_dorsal": [0,177,204,116],
+
+        "ov_lateral": [0,255,204,204],
+        "yolk_lateral": [0,138,148,241],
+        "fishoutline_dorsal": [0,111,220,247],
+        "fishoutline_lateral": [0,233,193,133],
+        "heart_lateral": [0,85,97,205]
+    }
+
+    #read roi and get mask
+    img = np.zeros((190,1024,1), np.uint8)
+    roi = read_roi_file(roi_paths)[mask_name]
+
+
+    img = Tox.obtain_mask(img,roi)
+    cv2.imwrite(mask_name +'.png', img)
+
+    img = cv2.imread(mask_name +'.png')
+    img = (255-img)
+
+    # convert to graky
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # threshold input image as mask
+    mask = cv2.threshold(gray, 250, 255, cv2.THRESH_BINARY)[1]
+
+    # negate mask
+    mask = 255 - mask
+
+    # anti-alias the mask -- blur then stretch
+    # blur alpha channel
+    mask = cv2.GaussianBlur(mask, (0,0), sigmaX=2, sigmaY=2, borderType = cv2.BORDER_DEFAULT)
+
+    # linear stretch so that 127.5 goes to 0, but 255 stays 255
+    mask = (2*(mask.astype(np.float32))-255.0).clip(0,255).astype(np.uint8)
+
+    # put mask into alpha channel
+    result = img.copy()
+    result = cv2.cvtColor(result, cv2.COLOR_BGR2BGRA)
+
+    #set color
+    indices = np.where(result==0)
+    color = colors[mask_name]
+    result[indices[0], indices[1], :] = color
+    #set transparency
+    result[...,3] = 127
+
+    # save resulting masked image
+    cv2.imwrite(mask_name+'.png', result)
 
 @app.route('/upload.html', methods=['GET', 'POST'])
 def upload_file():
@@ -105,14 +183,17 @@ def upload_file():
         Tox.generate_and_save_predictions(str(dirname), batch_size=4,
                                           model_path_seg='static/weight/weights.pt',
                                           model_path_bools='static/weight/weights_bool.pt',
-                                          mask_names=["outline_lat", "heart_lat", "yolk_lat", "ov_lat", "eyes_dor", "outline_dor"],
-                                          feno_names=['bodycurvature', 'yolkedema', 'necrosis', 'tailbending', 'notochorddefects', 'craniofacialedema', 'finabsence', 'scoliosis','snoutjawdefects'],
+                                          mask_names=[
+                                              "outline_lat", "heart_lat", "yolk_lat", "ov_lat", "eyes_dor", "outline_dor"],
+                                          feno_names=['bodycurvature', 'yolkedema', 'necrosis', 'tailbending', 'notochorddefects',
+                                                      'craniofacialedema', 'finabsence', 'scoliosis', 'snoutjawdefects'],
                                           device=device)
         dirs = [name for name in os.listdir(
             dirname) if os.path.isdir(os.path.join(dirname, name))]
         dirs2 = [dirname + "/" + sub for sub in dirs]
         dirs2.sort()
-        return render_template('terato2.html', plates=dirs2, done=True)
+        images, phenotypes =dict_from_xml(dirname, plate_name)
+        return render_template('terato2.html', plates=dirs2, done=True, data=phenotypes, images=images)
     processed = os.listdir(app.config['UPLOAD_FOLDER'])
     return render_template('upload.html', process=processed)
 
@@ -122,33 +203,14 @@ def terato():
     if request.method == 'POST':
         plate_name = request.form['submit_button']
         dirname = os.path.join(app.config['UPLOAD_FOLDER'], plate_name)
-        dirs = [name for name in os.listdir(dirname) if os.path.isdir(os.path.join(dirname, name))]
+        dirs = [name for name in os.listdir(
+            dirname) if os.path.isdir(os.path.join(dirname, name))]
         dirs2 = [dirname + "/" + sub for sub in dirs]
         dirs2.sort()
-        with open('static/dict/' + str(plate_name) + '.pckl', 'rb') as handle:
-            booleans = pickle.load(handle)
-        return render_template('terato2.html', plates = dirs2, dict=booleans)
+        images, phenotypes =dict_from_xml(dirname, plate_name)
+        return render_template('terato2.html', plates=dirs2, plate_name=plate_name, data=phenotypes, images=images)
     else:
         print("fail")
-
-
-'''
-                if (not Path(os.path.join(app.config['UPLOAD_FOLDER'],path_name.parent)).exists()):
-                    os.mkdir(os.path.join(app.config['UPLOAD_FOLDER'],path_name.parent))
-
-
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], path_name))
-        plate(app.config['UPLOAD_FOLDER'])
-        dirname = os.path.join(app.config['UPLOAD_FOLDER'], plate_name)
-        dirs = [ name for name in os.listdir(dirname) if os.path.isdir(os.path.join(dirname, name)) ]
-        dirs2 = [dirname+ "/" + sub for sub in dirs]
-        dirs2.sort()
-        with open('static/dict/booleans.pckl', 'rb') as handle:
-            booleans = pickle.load(handle)
-        return render_template('terato.html', plates = dirs2, done=True, dict = booleans)
-    return render_template('upload.html')
-'''
 
 
 @app.route('/cardio.html', methods=['GET', 'POST'])
@@ -173,30 +235,34 @@ def cardio():
     return render_template('cardio.html', dict={})
 
 
-@app.route('/getmask/', methods=['GET','POST'])
+@app.route('/getmask/', methods=['GET', 'POST'])
 def getmask():
-      if request.method == "POST":
-          data = json.loads(request.data)
-          print(data)
-      return 'hola'
+    if request.method == "POST":
+        data = json.loads(request.data)
+        masks = ["eye_up_dorsal","eye_down_dorsal","ov_lateral","yolk_lateral","fishoutline_dorsal","fishoutline_lateral","heart_lateral"]
+        for mask in masks:
+            create_mask(data+'/'+mask+'.roi',mask)
+    return
 
-@app.route('/deletetemp/', methods=['GET','POST'])
+
+@app.route('/deletetemp/', methods=['GET', 'POST'])
 def deletetemp():
-      if request.method == "POST":
-          os.remove()
-      return 'hola'
+    if request.method == "POST":
+        os.remove()
+    return 'hola'
 
-@app.route('/deleteplate/', methods=['GET','POST'])
+
+@app.route('/deleteplate/', methods=['GET', 'POST'])
 def deleteplate():
-      if request.method == "POST":
-          data = json.loads(request.data)
-          try:
-              os.rmdir(UPLOAD_FOLDER+ '/' + data)
-          except:
-              os.remove(UPLOAD_FOLDER+ '/' + data)
-          print('hola', data)
-      return 'hola'
-
+    if request.method == "POST":
+        data = json.loads(request.data)
+        try:
+            os.rmdir(UPLOAD_FOLDER + '/' + data)
+            print('hola2')
+        except:
+            os.remove(UPLOAD_FOLDER + '/' + data)
+            print('hola1')
+    return 'hola'
 
 
 @app.context_processor

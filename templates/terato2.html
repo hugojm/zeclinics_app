@@ -12,7 +12,9 @@
     <a href="{{ url_for('home') }}"><img class="but_home" src="{{url_for('static',filename='img/home_but.png')}}"></a>
   </div>
 
-
+  <div class='title_terato'>
+      <h1>TERATO</h1>
+  </div>
   <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
     <defs>
       <filter id="goo">
@@ -80,11 +82,11 @@
 <div id="mask_menu" style="display:none" >
 <h1>Display masks</h1>
 <label class="container">Lateral Outline
-  <input type="checkbox" id="outline_lateral" onclick="calc('outline_lateral')">
+  <input type="checkbox" id="fishoutline_lateral" onclick="calc('fishoutline_lateral')">
   <span class="checkmark"></span>
 </label>
 <label class="container">Dorsal Outline
-  <input type="checkbox" id="outline_dorsal" onclick="calc('outline_dorsal')">
+  <input type="checkbox" id="fishoutline_dorsal" onclick="calc('fishoutline_dorsal')">
   <span class="checkmark"></span>
 </label>
 <label class="container">Eyes
@@ -92,15 +94,15 @@
   <span class="checkmark"></span>
 </label>
 <label class="container">Heart
-  <input type="checkbox" id="heart" onclick="calc('heart')">
+  <input type="checkbox" id="heart_lateral" onclick="calc('heart_lateral')">
   <span class="checkmark"></span>
 </label>
 <label class="container">Ov
-  <input type="checkbox" id="ov" onclick="calc('ov')">
+  <input type="checkbox" id="ov_lateral" onclick="calc('ov_lateral')">
   <span class="checkmark"></span>
 </label>
 <label class="container">Yolk
-  <input type="checkbox" id="yolk" onclick="calc('yolk')">
+  <input type="checkbox" id="yolk_lateral" onclick="calc('yolk_lateral')">
   <span class="checkmark"></span>
 </label>
     </div>
@@ -109,12 +111,13 @@
           <div class="print" id ="lateral_div"> </div>
           <div class="print1" id ="dorsal_div"> </div>
           <div class="print_plate" id ="plate"> </div>
-          <div class="print1" id ="eyes_dorsal_div"> </div>
-          <div class="print1" id ="outline_dorsal_div"> </div>
-          <div class="print" id ="outline_lateral_div"> </div>
-          <div class="print" id ="heart_div"> </div>
-          <div class="print" id ="ov_div"> </div>
-          <div class="print" id ="yolk_div"> </div>
+          <div class="print1" id ="eyes_dorsal_div" style="z-index:10"> </div>
+          <div class="print1" id ="eyes2_dorsal_div" style="z-index:10"> </div>
+          <div class="print1" id ="fishoutline_dorsal_div" > </div>
+          <div class="print" id ="fishoutline_lateral_div"> </div>
+          <div class="print" id ="heart_lateral_div" style="z-index:10"> </div>
+          <div class="print" id ="ov_lateral_div" style="z-index:10"> </div>
+          <div class="print" id ="yolk_lateral_div" style="z-index:10"> </div>
           <div class="print2" id ="bool_div">
           <div class="bool_menu" id="bool">
             <table class="bool" id="bool_text"> </table>
@@ -126,10 +129,11 @@
 
 
     <script type="text/javascript">
+    var temp = '/temp/'
     var position = 0;
     const selected_pheno = new Set()
     var pheno = {'bodycurvature':'Body curvature','yolkedema':'Yolk edema','necrosis':'Necrosis','tailbending':'Tail Bending','notochorddefects':'Notochord defects','craniofacialedema':'Craniofacial edema','finabsence':'Fin absence','scoliosis':'Scoliosis','snoutjawdefects':'Snout jaw defects','otolithsdefects':'Otoliths defects'}
-    var types = ["eyes_dorsal", "heart", "outline_dorsal", "outline_lateral", "ov", "yolk"];
+    var types = ["eyes_dorsal", "heart_lateral", "fishoutline_dorsal", "fishoutline_lateral", "ov_lateral", "yolk_lateral"];
     var data = {{ data|tojson }};
     var images = {{ images|tojson }}
 
@@ -224,7 +228,8 @@
         {
           $.ajax({
             type : 'POST',
-            url : "{{url_for('deletetemp')}}"
+            url : "{{url_for('deletetemp')}}",
+            async : false
           });
         }
     })
@@ -239,7 +244,8 @@
             dataType: 'json',
             url : "{{url_for('getmask')}}",
             contentType: 'application/json;charset=UTF-8',
-            data : JSON.stringify(_msg)
+            data : JSON.stringify(_msg),
+            async : false
           });
         }
     })
@@ -250,11 +256,10 @@
       document.getElementById("boolean_menu").style.display = "none";
       document.getElementById("mask_menu").style.display = "block";
       var path = document.getElementById("comp_select").value;
-
+      deletetemp();
       if (path == "default"){
 
         print_overview(position);
-        deletetemp();
 
       }else{
         sendmask(path);
@@ -302,15 +307,24 @@
       {
       var e = document.getElementById("comp_select");
       var path = e.value;
+      var out = path.split('/');
+      var well = out[out.length - 1];
       if(path != "default"){
         if (document.getElementById(type).checked)
         {
-          var image = path + "/" + type + "_out.png"
+          var image = temp +"/"+well+ type + ".png"
           var div = document.getElementById(type+"_div");
-          div.innerHTML = '<img src={{url_for('static',filename= '')}}'+ image.substring(7)+ '/>';
+          if (type == 'eyes_dorsal'){
+            var div2 = document.getElementById('eyes2_dorsal_div');
+            div.innerHTML = '<img src={{url_for('static',filename= '')}}'+ temp +"/"+well+ 'eye_up_dorsal.png' + ' style="opacity: 0.5;"'+ '/>';
+            div2.innerHTML = '<img src={{url_for('static',filename= '')}}'+ temp +"/"+well+ 'eye_down_dorsal.png' + ' style="opacity: 0.5;"'+ '/>';
+          }else{
+            div.innerHTML = '<img src={{url_for('static',filename= '')}}'+ image + ' style="opacity: 0.5;"'+ '/>';
+          }
         }
         else{
           document.getElementById(type+"_div").innerHTML = '';
+          if (type == 'eyes_dorsal')  document.getElementById('eyes2_dorsal_div').innerHTML = '';
         }
       }
     };

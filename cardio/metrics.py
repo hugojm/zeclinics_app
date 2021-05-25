@@ -1,15 +1,19 @@
 #
-# Version 1.2.4.7.2J
+# Version 2.0
 #
 import time
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-import pickle
 
-## Cardiac Arrest # v_signal = ventricle[3] = c[3]
-def cardiac_arrest(v_signal):
-    return  np.std(v_signal)<0.000376003903472389
+## Cardiac Arrest
+def is_beating_or_cardiac_arrest(bpm,fps,peaks):
+    beat_mean_dist = fps/(bpm/60) #passar de bpm a frame distance
+    for i in range(1,len(peaks)):
+        if peaks[i]-peaks[i-1] > 5*beat_mean_dist:
+            return False
+
+    return True
 
 
 # Longest time without a beat
@@ -57,7 +61,7 @@ def ejection_fraction(peaks, area_per_frame):
         b = peaks[i] #right max peak
         c = min_between_beats(a, b, area_per_frame)
 
-        percent_ej_frac = area_per_frame[c]*100/area_per_frame[a]
+        percent_ej_frac = 100*(1-((area_per_frame[c])/area_per_frame[a]))
 
         ej_frac = ej_frac + percent_ej_frac
 
@@ -71,11 +75,8 @@ def qt (atrpeaks, venpeaks):
 # Arithmia estimation by longest/shortest
 def arithmia_by_longest_shortest(longest,shortest):
     arithmia_coefficient = longest/shortest
-    arithmia = False
     treshold = 3 # cal preguntar a la sylvia
-    if arithmia_coefficient > treshold:
-        arithmia = True
-    return arithmia
+    return arithmia_coefficient > treshold
 
 # Arithmia estimation by distance distribution
 def arithmia_by_distance_distribution(peaks,fps):
@@ -97,13 +98,24 @@ def arithmia_by_distance_distribution(peaks,fps):
 
 ################## Function calls ##################
 
-def metrics(atrium,ventricle,fps):
-    peaks_a = atrium[1]['peaklist']
-    peaks_v = ventricle[1]['peaklist']
+def dict_metrics(atrium,peaks_a,abpm,ventricle,peaks_v,vbpm,fps,bad_atrium,bad_ventricle,debug=False):
+    if debug:
+        print("\nStarted Metrics Extraction")
+        start = time.time()
 
     metrics_dict = {}
 
-    metrics_dict['cardiac_arrest'] = bool(cardiac_arrest(ventricle[0])) # ventricle[3]
+    metrics_dict['bad_ventricle_signal']=bad_ventricle
+    metrics_dict['bad_atrium_signal']=bad_atrium
+
+    vbpm = len(peaks_v)/len(ventricle) * fps * 60
+    abpm = len(peaks_a)/len(atrium) * fps * 60
+
+    metrics_dict['v_beating'] = is_beating_or_cardiac_arrest(vbpm,fps,peaks_v)
+    metrics_dict['a_beating'] = is_beating_or_cardiac_arrest(abpm,fps,peaks_a)
+
+    metrics_dict['v_bpm'] = (metrics_dict['v_beating'])*vbpm
+    metrics_dict['a_bpm'] = (metrics_dict['a_beating'])*abpm
 
     metrics_dict['longest_v'] = longest_time_wo_beat(peaks_v,fps)
     metrics_dict['longest_a'] = longest_time_wo_beat(peaks_a,fps)
@@ -113,16 +125,18 @@ def metrics(atrium,ventricle,fps):
     metrics_dict['shortest_a'] = shortest_time_wo_beat(peaks_a,fps)
     #print("Shortest time without a beat:",shortest,"seconds")
 
-    metrics_dict['ef_v'] = ejection_fraction(peaks_v,ventricle[0])
-    metrics_dict['ef_a'] = ejection_fraction(peaks_a,atrium[0])
+    metrics_dict['ef_v'] = ejection_fraction(peaks_v,ventricle)
+    metrics_dict['ef_a'] = ejection_fraction(peaks_a,atrium)
 
-    metrics_dict['qt_mean'] = qt(peaks_a, peaks_v)
+    metrics_dict['qt_mean'] = 0#qt(peaks_a, peaks_v)
 
-    metrics_dict['arithmia_1']  = bool(arithmia_by_longest_shortest(metrics_dict['longest_v'],metrics_dict['longest_a']))
-    metrics_dict['arithmia_2']  = bool(arithmia_by_distance_distribution(peaks_v,fps))
+    metrics_dict['arrhythmia_1'] = arithmia_by_longest_shortest(metrics_dict['longest_v'],metrics_dict['shortest_v'])
+    metrics_dict['arrhythmia_2'] = arithmia_by_distance_distribution(peaks_v,fps)
 
-    with open('static/dict/metrics.pckl', 'wb') as handle:
-         pickle.dump(metrics_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    if debug:
+        print("METRIC EXTRACTION: Elapsed time = ",time.time()-start)
+
+    return metrics_dict
 
 
 ###################################################

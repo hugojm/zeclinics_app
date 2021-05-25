@@ -1,5 +1,5 @@
 #
-# VERSION 3.3
+# VERSION 4.1
 #
 
 import sys
@@ -7,19 +7,22 @@ import os
 import numpy as np
 from os import listdir
 from os.path import isfile, join
-from cardio.preprocess import lifpreprocess
-from cardio.active_contours import ac_masks
-from cardio.nnet_cardio import nnet_masks
-import cardio.metrics as m
+from preprocess import lifpreprocess
+from active_contours import ac_masks
+from nnet_cardio import nnet_masks
 
-import heartpy as hp
 import cv2
+from metrics import dict_metrics
 import matplotlib.pyplot as plt
 
 from scipy.fftpack import fft
 from scipy.signal import butter, lfilter, filtfilt
 from scipy.signal import freqz
 from scipy import ndimage
+from scipy import signal
+import heartpy as hp
+import warnings
+warnings.filterwarnings("error")
 
 #FOR optimization
 import gc
@@ -28,9 +31,7 @@ import gc
 import time
 
 
-
-
-def read(path):
+def read(path,debug=False):
     if debug:
         start=time.time()
         print("Reading files...")
@@ -86,19 +87,43 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
     return y
 
 
-def extract_metrics(atrium, ventricle, lowcut, highcut, fs):
+def extract_metrics(atrium, ventricle, filter_signal, lowcut, highcut, fps):
 
-    y_ventricle = butter_bandpass_filter(ventricle, lowcut, highcut, fs, order=1)
-    y_ventricle = y_ventricle[200:]
-    vv, vm = hp.process(y_ventricle, fs)
+    if filter_signal:
+        y_ventricle = butter_bandpass_filter(ventricle, lowcut, highcut, fps, order=1)
+        y_ventricle = y_ventricle[200:]
+    else:
+        y_ventricle=ventricle
 
-    vbpm=vm['bpm']
+    if filter_signal:
+        y_atrium = butter_bandpass_filter(atrium, lowcut, highcut, fps, order=1)
+        y_atrium = y_atrium[200:]
+    else:
+        y_atrium=atrium
 
-    y_atrium = butter_bandpass_filter(atrium, max((vbpm/3)/60,(1/6)), min((vbpm*3)/60,(35/6)), fs, order=1)
-    y_atrium = y_atrium[200:]
-    av, am = hp.process(y_atrium, fs)
+    try:
+        _, m = hp.process(np.array(y_atrium), sample_rate = fps)
+        peaks_a = m['peaks']
+        abpm = m['bpm']
+        bad_atrium=False
+    except Warning:
+        peaks_a = signal.find_peaks_cwt(y_atrium,np.arange(1,15))
+        abpm = len(peaks_a)/len(y_atrium) * fps * 60
+        bad_atrium=True
 
-    return av,am,vv,vm
+    try:
+        _, m = hp.process(np.array(y_ventricle), sample_rate = fps)
+        peaks_v = m['peaks']
+        vbpm = m['bpm']
+        bad_ventricle=False
+    except Warning:
+        peaks_v = signal.find_peaks_cwt(y_ventricle,np.arange(1,15))
+        vbpm = len(peaks_v)/len(y_ventricle) * fps * 60
+        bad_ventricle=True
+
+    peaks_a = signal.find_peaks_cwt(y_atrium,np.arange(1,30))
+
+    return y_atrium,peaks_a,abpm,bad_atrium,y_ventricle,peaks_v,vbpm,bad_ventricle
 
 
 def convert_16_to_8(img):
@@ -112,7 +137,29 @@ def convert_16_to_8(img):
     return new_img
 
 
-def create_video(video_frames, masks_a, masks_v, video_name, fps, debug):
+def scale_signals(v, a):
+    div = max(max(v),max(a))
+    return v/(div), a/div #(div-div+1)
+
+def ecg(atrium, ventricle, save=False):
+    ventricle, atrium = scale_signals(ventricle, atrium)
+
+    # Invert ventricle signal
+    inv_atrium = -atrium-max(-atrium)+max(atrium)
+
+    # Plot
+    fig = plt.figure(figsize=(25,10))
+    ax = fig.add_subplot(111)
+    ax.plot(ventricle, 'cornflowerblue', label = 'Ventricle')
+    ax.plot(inv_atrium, 'indianred', label = 'Atrium')
+    ax.set(ylim=(min(ventricle)-0.03, max(ventricle)+0.02))
+    ax.legend(loc='lower right', shadow=True, ncol=2)
+    if save:
+        ax.savefig('ecg.png')
+        plt.close(ax)
+
+
+def generate_video(video_frames, masks_a, masks_v, fps, video_name, debug=False):
 
     if debug:
         print("\nStarted Video Generation")
@@ -143,7 +190,7 @@ def create_video(video_frames, masks_a, masks_v, video_name, fps, debug):
     return video_name
 
 
-def process_video(input_video, base_it=50, update_it=4, skip=1, memory_it=1, border_removal=20, lowcut=(1/6), highcut=(35/6), freq_sample=76, p_index=2, p_out_shape='original', gen_video=False, video_name='output.webm', p_store=False, p_out_dir='output', mode='nn', debug=False):
+def process_video(input_video, base_it=120, update_it=4, skip=1, memory_it=1, border_removal=20, filter_signal=True, lowcut=(10), highcut=(350), fps=76, p_index=2, p_out_shape=(482,408), gen_video=False, video_name='output.webm', p_store=False, p_out_dir='output', debug=False):
     # FUNCTION TO PROCESS A LIST OF frames
     # This function applies morphological_chain_vese to each frame,
     #   implemented with memory for efficiency.
@@ -155,10 +202,11 @@ def process_video(input_video, base_it=50, update_it=4, skip=1, memory_it=1, bor
     # --> memory_it: iteration which is passed to the following frame as baseline
     # --> border_removal: size of the border to remove in img and masks
     # --> lowcut & highcut: values for min and max bpm expected
-    # --> freq_sample: fps of the raw video
+    # --> fps: fps of the raw video
     # --> p_index: index of the video in the LIF file (can be checked via ImageJ)
     # --> p_out_shape: shape (n x n) of the output images, if 'original' mantain shape
     # --> mode: 'nn', 'ac' or 'both'. If nn it uses nn, ac uses Active Contours, both uses nn for atrium and Active Contours for ventricle.
+    # --> batch_size: batch size for nn masks input
     #
     # # # EXTRA FEATURES --> SPACE CONSUMING # # #
     # --> gen_video: if TRUE, stores a video showing the segmentation
@@ -174,96 +222,82 @@ def process_video(input_video, base_it=50, update_it=4, skip=1, memory_it=1, bor
         if(".lif" in input_video):
             video = lifpreprocess(input_video,out_dir=p_out_dir,index_of_interest=p_index,out_shape=p_out_shape,store=p_store,debug=debug)
         else:
-            video = read(input_video)
+            video = read(input_video,debug)
     else:
         video = input_video
 
     #METRIC EXTRACTION
-    per_frame_a = [None]*len(video)
-    per_frame_v = [None]*len(video)
+    frame_a = [None]*len(video)
+    frame_v = [None]*len(video)
+    masks_a,masks_v=ac_masks(video,update_it=update_it,base_it=base_it,skip=skip,memory_it=memory_it,debug=debug)
 
-    if mode != 'ac':
-        if mode == 'both':
-            masks_a,_=nnet_masks(video,image=True,debug=debug)
-            masks_v=ac_masks(video,lowcut=lowcut,highcut=highcut,freq_sample=freq_sample,update_it=update_it,base_it=base_it,skip=skip,memory_it=memory_it,debug=debug)
-        else:
-            masks_a,masks_v=nnet_masks(video,image=True,debug=debug)
+    for i in range(len(video)):
+        #CROP THE EDGES OF THE MASK AND IMAGE
+        reduced_v = masks_v[i][border_removal:-border_removal, border_removal:-border_removal]
+        reduced_a = masks_a[i][border_removal:-border_removal, border_removal:-border_removal]
 
-        if debug:
-            start = time.time()
-            print("\nExtracting metrics...")
+        img = video[i][border_removal:-border_removal, border_removal:-border_removal]
 
-        for i in range(len(video)):
-            #CROP THE EDGES OF THE MASK AND IMAGE
-            reduced_v = masks_v[i][border_removal:-border_removal, border_removal:-border_removal]
-            reduced_a = masks_a[i][border_removal:-border_removal, border_removal:-border_removal]
+        _, counts_v = np.unique(reduced_v, return_counts=True)
+        _, counts_a = np.unique(reduced_a, return_counts=True)
 
-            img = video[i][border_removal:-border_removal, border_removal:-border_removal]
-
-            _, counts_v = np.unique(reduced_v, return_counts=True)
-            _, counts_a = np.unique(reduced_a, return_counts=True)
-
-            per_frame_v[i] = min(counts_v)
-            per_frame_a[i] = min(counts_a)
-
-    else:
-        masks_a=None
-        masks_v=ac_masks(video,lowcut=lowcut,highcut=highcut,freq_sample=freq_sample,update_it=update_it,base_it=base_it,skip=skip,memory_it=memory_it,debug=debug)
-
-        if debug:
-            start = time.time()
-            print("\nExtracting metrics...")
-
-        for i in range(len(video)):
-            #CROP THE EDGES OF THE MASK AND IMAGE
-            reduced_v = masks_v[i][border_removal:-border_removal, border_removal:-border_removal]
-            img = video[i][border_removal:-border_removal, border_removal:-border_removal]
-
-            unique, counts = np.unique(reduced_v, return_counts=True)
-            per_frame_v[i] = min(counts)
-            per_frame_a[i] = np.sum((1-reduced_v)*img)
-
-        per_frame_a = [x / max(per_frame_a) for x in per_frame_a]
+        frame_v[i] = min(counts_v)
+        frame_a[i] = min(counts_a)
 
 
-    av,am,vv,vm=extract_metrics(per_frame_a, per_frame_v, lowcut, highcut, freq_sample)
+    frame_a,peaks_a,abpm,bad_atrium,frame_v,peaks_v,vbpm,bad_ventricle=extract_metrics(frame_a, frame_v, filter_signal, lowcut/60, highcut/60, fps)
 
-    if debug:
-        print("METRIC EXTRACTION: Elapsed time = ",time.time()-start)
+    metrics=dict_metrics(frame_a,peaks_a,abpm,frame_v,peaks_v,vbpm,fps=fps,bad_atrium=bad_atrium,bad_ventricle=bad_ventricle,debug=debug)
 
     video_path=None
     if gen_video:
-        video_path = create_video(video,masks_a=masks_a,masks_v=masks_v,video_name=video_name,fps=freq_sample,debug=debug)
+        video_path = generate_video(video,masks_a=masks_a,masks_v=masks_v,video_name=video_name,fps=fps,debug=debug)
 
     #FREE MEMORY#
     del video
     gc.collect()
     #############
 
-    m.metrics([per_frame_a,av,am], [per_frame_v,vv,vm], freq_sample)
-
-    return masks_a, masks_v, [per_frame_a,av,am], [per_frame_v,vv,vm], video_path
+    return masks_a, masks_v, frame_a, frame_v, metrics, video_path
 
 
-def process_dir(input_video_arrays, base_it=50, update_it=4, skip=1, memory_it=1, border_removal=20, lowcut=(1/6), highcut=(35/6), freq_sample=76, p_index=2, p_out_shape='original', gen_video=False, video_name='.webm', p_store=False, p_out_dir='output', debug=False):
+def process_multiple(input_multiple, base_it=120, update_it=4, skip=1, memory_it=1, border_removal=20, filter_signal=False, lowcut=10, highcut=350, fps=76, p_index=2, p_out_shape=(482,408), gen_video=False, video_name='.webm', p_store=False, p_out_dir='output', debug=False):
 
-    if isinstance(input_video_arrays, str):
-        path_files = [f.split('.')[0] for f in listdir(input_video_arrays) if isfile(join(input_video_arrays, f))]
-        video_arrays = lifpreprocess(input_video_arrays,out_dir=p_out_dir,index_of_interest=p_index,out_shape=p_out_shape,store=p_store,debug=debug)
+    if isinstance(input_multiple, str):
+        path_files = [f.split('.')[0] for f in listdir(input_multiple) if isfile(join(input_multiple, f))]
+        video_arrays = lifpreprocess(input_multiple,out_dir=p_out_dir,index_of_interest=p_index,out_shape=p_out_shape,store=p_store,debug=debug)
 
     else:
-        video_arrays = input_video_arrays
+        video_arrays = input_multiple
+        path_files= ['video_'+str(i) for i in range(len(input_multiple))]
 
     if(debug):
         print("Number of read videos: "+str(len(video_arrays)))
 
-    masks = [None] * len(video_arrays)
-    atrium, ventricle = [None] * len(video_arrays), [None] * len(video_arrays)
-    video_paths = [None] * len(video_arrays)
+    masks_a, masks_v = [None] * len(video_arrays), [None] * len(video_arrays)
+    frame_a, frame_v = [None] * len(video_arrays), [None] * len(video_arrays)
+    metrics = [None] * len(video_arrays)
+    video_path = [None] * len(video_arrays)
 
     for i in range(len(video_arrays)):
         if (debug):
             print("\nProcessing video ",i+1," of ",len(video_arrays))
-        masks[i],atrium[i],ventricle[i],video_paths[i]=process_video(input_video=video_arrays[i],base_it=base_it,update_it=update_it,skip=skip,memory_it=memory_it,border_removal=border_removal,lowcut=lowcut,highcut=highcut,freq_sample=freq_sample,p_index=p_index,p_out_shape=p_out_shape,gen_video=gen_video,video_name=path_files[i]+video_name,p_store=p_store,p_out_dir=p_out_dir,debug=debug)
+        masks_a[i], masks_v[i], frame_a[i], frame_v[i], metrics[i], video_path[i]=process_video(input_video=video_arrays[i],base_it=base_it,update_it=update_it,skip=skip,memory_it=memory_it,border_removal=border_removal,filter_signal=filter_signal, lowcut=lowcut, highcut=highcut, fps=fps, p_index=p_index, p_out_shape=p_out_shape,gen_video=gen_video,video_name=path_files[i]+video_name,p_store=p_store,p_out_dir=p_out_dir,debug=debug)
 
-    return masks,atrium,ventricle,video_paths
+    return masks_a,masks_v,frame_a,frame_v,metrics,video_path
+
+
+#########
+#EXECUTION:
+#import process
+# output = processdir('path' -> Directory with subfolders for each video, debug = T or F)
+#path = '/Users/marcfuon/Desktop/LIFS/20170102_SME_085.lif'
+#frames = lifpreprocess(path, out_shape = (482,408), debug=True)
+#masks_a,masks_v,a,v,dict,_ =process_video(frames[:500],fps=76,debug=True,filter_signal=False,gen_video=False)
+#########
+#EXAMPLE:
+#masks_a,masks_v,a,v,_=process_dir("../../LIFS",update_it=4,skip=1,debug=True,mode='ac',gen_video=True)
+#print(dict['a_bpm'],dict['v_bpm'],dict['ef_a'],dict['ef_v'])
+#plt.imshow(masks_v[0], cmap='gray')
+#plt.show()
+#########

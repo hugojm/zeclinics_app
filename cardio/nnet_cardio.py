@@ -1,5 +1,5 @@
 #
-# VERSION 2.0
+# VERSION 2.1
 #
 
 import time
@@ -10,10 +10,11 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 # Load the model outside the function so it doesn't have to be loaded for every image
-# model = torch.load('./static/weight/weightsResNet50_2_masks.pt')
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+model = torch.load('./static/weight/weights_cardio.pt')
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def predict_heart_masks_deep(images,batch_size, model=None):
+
+def predict_heart_masks_deep(images,batch_size, model=model):
     images=np.array(images)
     formatted_img=np.empty((batch_size,482,408,3))
     if len(images[0].shape)==2:
@@ -39,35 +40,32 @@ def predict_heart_masks_deep(images,batch_size, model=None):
     output_tensor = model(input_tensor)#.to(device)
 
     # Postprocess masks
-    atrium_masks = np.zeros(shape=(batch_size,482, 408), dtype=np.float32)
-    ventricle_masks = np.zeros(shape=(batch_size,482, 408), dtype=np.float32)
+    masks = np.zeros(shape=(batch_size,482, 408), dtype=np.float32)
     for i in range(batch_size):
-        atrium_mask = output_tensor['out'][i][0].cpu().detach().numpy()
-        ventricle_mask = output_tensor['out'][i][1].cpu().detach().numpy()
-        # Threshold the mask
-        ret,atrium_masks[i] = cv2.threshold(atrium_mask,0.2,1,cv2.THRESH_BINARY)
-        ret,ventricle_masks[i]  = cv2.threshold(ventricle_mask,0.2,1,cv2.THRESH_BINARY)
+        mask = output_tensor['out'][i].cpu().detach().numpy()
+        ret,masks[i] = cv2.threshold(mask,0.2,1,cv2.THRESH_BINARY)
 
-    return atrium_masks, ventricle_masks
+    return masks
 
-def nnet_masks(video, batch_size = 20,debug=False):
+def nnet_masks(video, batch_size = 5,debug=False):
     # input shape is (batch_size, 482, 408, 3)
     if(debug):
         print("AI-Process starting...")
         start=time.time()
 
-    masks_a = [None]*len(video)
-    masks_v = [None]*len(video)
+    masks = [None]*len(video)
 
     for i in range(0,len(video), batch_size):
         if (debug and (i+1)%100==0):
             print(" -> AI-Processing frame ",i+1," of ",len(video))
 
-        masks_a[i:(i+batch_size)],masks_v[i:(i+batch_size)]=predict_heart_masks_deep(video[i:(i+batch_size)], batch_size)
-
+        masks[i:(i+batch_size)]=predict_heart_masks_deep(video[i:(i+batch_size)], batch_size)
 
 
     if debug:
         print("AI-PROCESS: Elapsed time = ",time.time()-start)
 
-    return masks_a,masks_v
+    return masks
+# Example
+#image = cv2.imread("/content/drive/MyDrive/Zeclinics/CARDIO/deep/Data/Image/20170104_SME02_008-0001.jpg")
+#atrium_mask, ventricle_mask = predict_heart_masks_deep(image,model)

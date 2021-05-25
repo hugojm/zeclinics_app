@@ -28,6 +28,10 @@ import threading
 from flaskwebgui import FlaskUI  # import FlaskUI
 import xml.etree.ElementTree as ET
 from tqdm import tqdm
+import glob
+
+f = open('processing.txt', 'w')
+f.close()
 
 UPLOAD_FOLDER = 'static/images'
 UPLOAD_FOLDER_CARDIO = 'static/videos'
@@ -94,44 +98,63 @@ def allowed_file_cardio(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS_CARDIO
 
 def dict_from_xml(plate_path, plate_name):
+    i = 0
+    listdir = os.listdir(plate_path)
+    well_name_example = listdir[i]
+    while well_name_example[:4] != 'Well':
+        i += 1
+        well_name_example = listdir[i]
+
     dic_images = {}
     dic_feno = {}
-    xml_path = plate_path + "/" + plate_name + ".xml"
+    xml_path = str(plate_path) + "/" + str(plate_name) + ".xml"
     tree = ET.parse(xml_path)
     plate = tree.getroot()
     for well in tqdm(plate):
-        well_name = 'Well_' + well.attrib['name']
-        dic_feno[well_name] = {}
-        dic_images[well_name] = [well.attrib['dorsal_image'],well.attrib['lateral_image']]
-        for feno in well:
-            dic_feno[well_name][feno.tag] = feno.attrib['probability']
+        if 'well_folder' in well.attrib:
+            well_name = well.attrib['well_folder']
+        else:
+            well_name = well_name_example[:-3] + well.attrib['name']
+        if int(well.attrib['show2user']):
+            dic_feno[well_name] = {}
+            dic_images[well_name] = [well.attrib['dorsal_image'],well.attrib['lateral_image']]
+            for feno in well:
+                if 'probability' in feno.attrib:
+                    dic_feno[well_name][feno.tag] = feno.attrib['probability']
+                elif 'value' in feno.attrib:
+                    dic_feno[well_name][feno.tag] = feno.attrib['value']
+                else:
+                    dic_feno[well_name][feno.tag] = -1
     return dic_images, dic_feno
 
 #roi path
 #mask_name (p ej. eye_up_dorsal, fishoutline_dorsal,...) - >es el nombre del roi sin el .roi
-def create_mask(roi_paths, mask_name):
-
+def create_mask(roi_paths, mask_name, well):
+    print(roi_paths)
     #colors in BGR
     colors = {
-        "eye_up_dorsal": [0,177,204,116],
-        "eye_down_dorsal": [0,177,204,116],
+        "eye_up_dorsal": [177,204,116,0],
+        "eye_down_dorsal": [177,204,116,0],
 
-        "ov_lateral": [0,255,204,204],
-        "yolk_lateral": [0,138,148,241],
-        "fishoutline_dorsal": [0,111,220,247],
-        "fishoutline_lateral": [0,233,193,133],
-        "heart_lateral": [0,85,97,205]
+        "ov_lateral": [255,204,204,0],
+        "yolk_lateral": [138,148,241,0],
+        "fishoutline_dorsal": [111,220,247,0],
+        "fishoutline_lateral": [233,193,133,0],
+        "heart_lateral": [85,97,205,0]
     }
-
     #read roi and get mask
     img = np.zeros((190,1024,1), np.uint8)
     roi = read_roi_file(roi_paths)[mask_name]
 
+    pts = zip(roi['x'],roi['y'])
+    pts2 = np.array(list(pts), 'int32')
+    #Important to put the brackets []!!!!
+    cv2.fillPoly( img , [pts2], (255))
 
-    img = Tox.obtain_mask(img,roi)
-    cv2.imwrite(mask_name +'.png', img)
+#    img = Tox.obtain_mask(img,roi)
+    cv2.imwrite('static/temp/'+well+mask_name +'.png', img)
 
-    img = cv2.imread(mask_name +'.png')
+    img = cv2.imread('static/temp/'+well+mask_name +'.png')
     img = (255-img)
 
     # convert to graky
@@ -160,40 +183,63 @@ def create_mask(roi_paths, mask_name):
     result[indices[0], indices[1], :] = color
     #set transparency
     result[...,3] = 127
+    result[:, :, 3] = mask
 
     # save resulting masked image
-    cv2.imwrite(mask_name+'.png', result)
+    cv2.imwrite('static/temp/'+well+mask_name+'.png', result)
 
 @app.route('/upload.html', methods=['GET', 'POST'])
 def upload_file():
     if request.method == "POST":
         files = request.files.getlist("file[]")
-        for file in files:
-            if file and allowed_file(file.filename):
-                path_name = Path(file.filename)
-                if (not Path(os.path.join(app.config['UPLOAD_FOLDER'], path_name.parent)).exists()):
-                    os.makedirs(os.path.join(
-                        app.config['UPLOAD_FOLDER'], path_name.parent))
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], path_name))
         plate_name = Path(files[0].filename).parent.parent
         if plate_name == Path('.'):
             plate_name = Path(files[0].filename).parent
         dirname = os.path.join(app.config['UPLOAD_FOLDER'], plate_name)
-        Tox.generate_and_save_predictions(str(dirname), batch_size=4,
-                                          model_path_seg='static/weight/weights.pt',
-                                          model_path_bools='static/weight/weights_bool.pt',
-                                          mask_names=[
-                                              "outline_lat", "heart_lat", "yolk_lat", "ov_lat", "eyes_dor", "outline_dor"],
-                                          feno_names=['bodycurvature', 'yolkedema', 'necrosis', 'tailbending', 'notochorddefects',
-                                                      'craniofacialedema', 'finabsence', 'scoliosis', 'snoutjawdefects'],
-                                          device=device)
+        if str(plate_name) not in os.listdir(app.config['UPLOAD_FOLDER']):
+            with open('processing.txt', 'w') as f:
+                f.write(str(plate_name) + '\n')
+            for file in files:
+                if file and allowed_file(file.filename):
+                    path_name = Path(file.filename)
+                    if (not Path(os.path.join(app.config['UPLOAD_FOLDER'], path_name.parent)).exists()):
+                        os.makedirs(os.path.join(
+                            app.config['UPLOAD_FOLDER'], path_name.parent))
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], path_name))
+            Tox.generate_and_save_predictions(str(dirname), batch_size=4,
+                                              model_path_seg='static/weight/weights.pt',
+                                              model_path_bools='static/weight/weights_bool.pt',
+                                              mask_names=[
+                                                  "outline_lat", "heart_lat", "yolk_lat", "ov_lat", "eyes_dor", "outline_dor"],
+                                              feno_names=['bodycurvature', 'yolkedema', 'necrosis', 'tailbending', 'notochorddefects',
+                                                          'craniofacialedema', 'finabsence', 'scoliosis', 'snoutjawdefects'],
+                                              device=device)
+            with open('processing.txt', 'r') as f:
+                output = []
+                for line in f:
+                    if str(plate_name) != line.strip():
+                        output.append(line)
+                f.close()
+                f = open('processing.txt', 'w')
+                f.writelines(output)
+                f.close()
+
+        with open('processing.txt') as f:
+            processing = True
+            while processing:
+                for line in f:
+                    if line.strip() == str(plate_name):
+                        break
+                processing = False
         dirs = [name for name in os.listdir(
             dirname) if os.path.isdir(os.path.join(dirname, name))]
         dirs2 = [dirname + "/" + sub for sub in dirs]
         dirs2.sort()
         images, phenotypes =dict_from_xml(dirname, plate_name)
         return render_template('terato2.html', plates=dirs2, done=True, data=phenotypes, images=images)
+    if not Path(app.config['UPLOAD_FOLDER']).exists():
+        os.mkdir(app.config['UPLOAD_FOLDER'])
     processed = os.listdir(app.config['UPLOAD_FOLDER'])
     return render_template('upload.html', process=processed)
 
@@ -239,16 +285,25 @@ def cardio():
 def getmask():
     if request.method == "POST":
         data = json.loads(request.data)
+        out = data.split('/');
+        well = out[len(out)- 1];
         masks = ["eye_up_dorsal","eye_down_dorsal","ov_lateral","yolk_lateral","fishoutline_dorsal","fishoutline_lateral","heart_lateral"]
         for mask in masks:
-            create_mask(data+'/'+mask+'.roi',mask)
-    return
+            try:
+                create_mask(data+'/'+mask+'.roi',mask, well)
+            except:
+                print('fail')
+    return 'Created mask'
 
 
 @app.route('/deletetemp/', methods=['GET', 'POST'])
 def deletetemp():
     if request.method == "POST":
-        os.remove()
+        print('prueba')
+        files = glob.glob('static/temp/*')
+        for f in files:
+            print(f)
+            os.remove(f)
     return 'hola'
 
 

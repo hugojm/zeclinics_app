@@ -1,5 +1,5 @@
 #
-# VERSION 1.5
+# VERSION 2.1
 #
 
 #
@@ -23,6 +23,7 @@ from readlif.reader import LifFile
 from os import listdir
 from os.path import isfile, join
 from PIL import Image
+import cv2
 
 def find_top_corner(in_shape,center_idx,out_shape,debug=False):
 # out shape = 1 number, shape of dimensions
@@ -30,19 +31,19 @@ def find_top_corner(in_shape,center_idx,out_shape,debug=False):
     if out_shape == "original":
         return [0,0]
 
-    top_left = [center_idx[0] - (out_shape/2),center_idx[1]-(out_shape/2)]
+    top_left = [int(center_idx[0] - (out_shape[0]/2)),int(center_idx[1]-(out_shape[1]/2))]
     if top_left[0] < 0: # esquerra
         top_left[0] = 0
     if top_left[1] < 0: # top
         top_left[1] = 0
-    if top_left[0]+ out_shape >= in_shape[0]:
-        top_left[0]-=(top_left[0]+out_shape-in_shape[0])+1
-    if top_left[1]+ out_shape >= in_shape[1]:
-        top_left[1]-=(top_left[1]+out_shape-in_shape[1])+1
+    if top_left[0]+ out_shape[0] >= in_shape[0]:
+        top_left[0]-=(top_left[0]+out_shape[0]-in_shape[0])+1
+    if top_left[1]+ out_shape[1] >= in_shape[1]:
+        top_left[1]-=(top_left[1]+out_shape[1]-in_shape[1])+1
 
     if debug:
-        print("     --> Centered image top corners: topleft=",top_left,"| topright=",[top_left[0]+out_shape,top_left[1]])
-        print("     --> Centered image bot corners: botleft=",[top_left[0],top_left[1]+out_shape],"| botright=",[top_left[0]+out_shape,top_left[1]+out_shape])
+        print("     --> Centered image top corners: topleft=",top_left,"| topright=",[top_left[0],top_left[1]+out_shape[1]])
+        print("     --> Centered image bot corners: botleft=",[top_left[0]+out_shape[0],top_left[1]],"| botright=",[top_left[0]+out_shape[0],top_left[1]+out_shape[1]])
 
     return top_left
 
@@ -50,7 +51,20 @@ def center_img(img,out_shape,top_left):
     if out_shape=='original':
         return img
 
-    img = img[int(top_left[0]):int(top_left[0]+out_shape),int(top_left[1]):int(top_left[1]+out_shape)]
+    tl1,tl2=top_left[0],top_left[1]
+    #ADD ZERO PADDING
+    if(tl1<0):
+        padding=np.zeros((-tl1,img.shape[1]),dtype='uint16')
+        img=cv2.vconcat([padding,img])
+        tl1=0
+
+
+    if(tl2<0):
+        padding=np.zeros((img.shape[0],-tl2),dtype='uint16')
+        img=cv2.hconcat([padding,img])
+        tl2=0
+
+    img = img[int(tl1):int(tl1+out_shape[0]),int(tl2):int(tl2+out_shape[1])]
     return img
 
 
@@ -109,3 +123,11 @@ def lifpreprocess(path,out_dir='output',index_of_interest=2,out_shape='original'
     del lif_imgs_frames
     gc.collect()
     #############
+
+
+#EXAMPLE:
+# FOR FILE --> result =
+#lifpreprocess('/Users/marcfuon/Desktop/LIFS/20170102_SME_085.lif',out_shape=(482,408),debug=True)
+# FOR DIR --> result = lifpreprocess('raw_data')
+# WITH: Store = TRUE --> There's no return
+######

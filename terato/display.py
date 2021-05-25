@@ -3,6 +3,7 @@ import cv2
 import csv
 import math
 import enum
+import time
 import torch
 import pickle
 import numpy as np
@@ -426,6 +427,7 @@ value corresponding to each mask extracted from the image.
 def predict_terato_masks_deep(images,image_names,mask_names,batch_size, orientation_list,model,device):
     im = torch.cat([i.unsqueeze(0) for i in images],dim = 0)
     input_tensor = im.to(device)
+    model.eval()
     with torch.set_grad_enabled(False):
         output_tensor = torch.sigmoid(model(input_tensor)['out'])#.to(device)
 
@@ -456,11 +458,9 @@ def predict_terato_masks_deep(images,image_names,mask_names,batch_size, orientat
     return masks_dict
 
 def split_eye_masks(mask):
-    lx,ly = upmost_point(mask)
-    rx,ry = bottommost_point(mask)
-
-    middle = (rx+lx)//2
-
+    mask2 = np.array(mask*255,dtype=np.uint8)
+    x, y, width, height = cv2.boundingRect(mask2)
+    middle = y + (height//2)
     up = np.zeros(mask.shape,np.uint8)
     down = np.zeros(mask.shape,np.uint8)
     # Generate up mask
@@ -496,10 +496,19 @@ def generate_and_save_roi(mask,well_path,mask_name):
     mask2 = np.array(mask,dtype=np.uint8)
     if mask_name != "eyes_dor":
 
-        contours, _ = cv2.findContours(mask2, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-
-        contours = np.squeeze(np.array(contours))
-
+        contours, _ = cv2.findContours(mask2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        contours = np.array(contours)
+        c = None
+        for i in range(contours.shape[0]):
+            if i == 0:
+                c = contours[i]
+                l = len(c)
+            c_i = contours[i]
+            l_i = len(c_i)
+            if l_i > l:
+                c = c_i
+                l = l_i
+        contours = c
 
     if mask_name == "outline_lat":
         roi_path = os.path.join(well_path, "fishoutline_lateral.roi")
@@ -514,37 +523,59 @@ def generate_and_save_roi(mask,well_path,mask_name):
         up_eye_mask, down_eye_mask = split_eye_masks(mask2)
 
         # Extract contours
-        roi_up, _ = cv2.findContours(up_eye_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-        roi_up = np.squeeze(np.array(roi_up))
-        if len(roi_up) > 10:
-            roi_up= ImagejRoi.frompoints(roi_up)
-            roi_path_up = os.path.join(well_path, "eye_up_dorsal.roi")
-            roi_up.tofile(roi_path_up)
+        roi_up, _ = cv2.findContours(up_eye_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        roi_up = np.array(roi_up)
+        c = None
+        for i in range(roi_up.shape[0]):
+            if i == 0:
+                c = roi_up[i]
+                l = len(c)
+            c_i = roi_up[i]
+            l_i = len(c_i)
+            if l_i > l:
+                c = c_i
+                l = l_i
+        roi_up = c
+        if roi_up is not None:
+            roi= ImagejRoi.frompoints(np.squeeze(roi_up,axis = 1))
+            roi.roitype = ROI_TYPE.POLYGON
+            roi_path = os.path.join(well_path, "eye_up_dorsal.roi")
+            roi.tofile(roi_path) # Save roi to file
         else:
-            print("Error in mask:", mask_name)
+            print("error in mask:",mask_name)
 
-        roi_down, _ = cv2.findContours(down_eye_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-        roi_down = np.squeeze(np.array(roi_down))
-        if len(roi_down) > 10:
-            roi_down= ImagejRoi.frompoints(roi_down)
-            roi_down.roitype = ROI_TYPE.POLYGON
-            roi_path_down = os.path.join(well_path, "eye_down_dorsal.roi")
-            roi_down.tofile(roi_path_down)
+        roi_down, _ = cv2.findContours(down_eye_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        roi_down = np.array(roi_down)
+        c = None
+        for i in range(roi_down.shape[0]):
+            if i == 0:
+                c = roi_down[i]
+                l = len(c)
+            c_i = roi_down[i]
+            l_i = len(c_i)
+            if l_i > l:
+                c = c_i
+                l = l_i
+        roi_down = c
+        if roi_up is not None:
+            roi= ImagejRoi.frompoints(np.squeeze(roi_down,axis = 1))
+            roi.roitype = ROI_TYPE.POLYGON
+            roi_path = os.path.join(well_path, "eye_down_dorsal.roi")
+            roi.tofile(roi_path) # Save roi to file
         else:
-            print("Error in mask:", mask_name)
-
+            print("error in mask:",mask_name)
         return None
     elif mask_name == "outline_dor":
         roi_path = os.path.join(well_path, "fishoutline_dorsal.roi")
     else:
         roi_path = os.path.join(well_path, "bad_mask_name.roi")
         print("Incorrect mask_name, saving to", roi_path)
-
-    if len(contours) > 10:
-        roi= ImagejRoi.frompoints(contours)
+    if contours is not None:
+        roi= ImagejRoi.frompoints(np.squeeze(contours,axis = 1))
+        roi.roitype = ROI_TYPE.POLYGON
         roi.tofile(roi_path) # Save roi to file
     else:
-        print("Error in mask:", mask_name)
+        print("error in mask:",mask_name)
 
 def predict_terato_bools_deep(images,image_names,feno_names,model,device):
     fenos = {im:{f:None for f in feno_names} for im in image_names}
@@ -561,25 +592,32 @@ def area(im):
     return np.sum(im)
 
 def length(im):
-    lx, rx = get_mask_extremes(im)
-    return rx-lx
-
+    img = np.array(im*255,dtype=np.uint8)
+    x, y, width, height = cv2.boundingRect(img)
+    return width
+'''
+TODO:
+ENVIAR MENSAJE CON EL PROGURESO A LA GUI PARA HACER UNA BARRA?
+'''
 def generate_and_save_predictions(plate_path,batch_size,model_path_seg,model_path_bools,mask_names,feno_names,device,path_dataframe = None):
+    time_predict_masks, time_generate_rois, time_predict_bools, time_area, time_length = 0, 0, 0, 0, 0
+
+    # DataFrame creation for plots
     if path_dataframe is None:
         path_dataframe = plate_path + '/stats.csv'
     column_names_area = ['area_out_lat','area_heart', 'area_yolk', 'area_ov', 'area_eyes', 'area_out_dor']
     column_names_length = ['length_out_lat','length_heart','length_yolk','length_ov','length_eyes','length_out_dor']
-
     df = pd.DataFrame(columns=['plate', 'well_folder', 'compound', 'dose', 'dead120', 'dead24'])
 
     trans = transforms.Compose([transforms.ToTensor()])
-    model_seg = torch.load(f'./{model_path_seg}',map_location=device)
-    model_bools = torch.load(f'./{model_path_bools}',map_location=device)
+    model_seg = torch.load(f'./{model_path_seg}', map_location=device).eval()
+    model_bools = torch.load(f'./{model_path_bools}', map_location=device).eval()
     plate_name = plate_path.split('/')[-1]
     xml_path = plate_path + "/" + plate_name + ".xml"
     tree = ET.parse(xml_path)
     plate = tree.getroot()
     data_frame = {columns_name:[] for columns_name in column_names_area + column_names_length + feno_names}
+    data_frame['well_folder'] = []
 
     batch = 0
     types = []
@@ -589,12 +627,27 @@ def generate_and_save_predictions(plate_path,batch_size,model_path_seg,model_pat
     images_bool = []
     well_list = []
     well_paths = []
+
+    i = 0
+    listdir = os.listdir(plate_path)
+    well_name_example = listdir[i]
+    while well_name_example[:4] != 'Well':
+        i += 1
+        well_name_example = listdir[i]
+
     # Every child of the plate is a well
-    for well in tqdm(plate):
-        well_name = 'Well_' + well.attrib['name']
+    n_wells = len(plate)
+    for well_id, well in enumerate(tqdm(plate)):
+        #if well_id == batch_size+1: break
+        if 'well_folder' in well.attrib:
+            well_name = well.attrib['well_folder']
+        else:
+            well_name = well_name_example[:-3] + well.attrib['name']
+
         df = df.append({'plate': plate_name, 'well_folder': well_name, 'compound':
                         well.attrib['compound'], 'dose': float(well.attrib['dose']), 'dead120':
                         int(well.attrib['dead120']), 'dead24': int(well.attrib['dead24'])}, ignore_index = True)
+        data_frame['well_folder'].append(well_name)
         # If show2user is 0 we can skip the well
         if int(well.attrib['show2user']):
             batch += 2
@@ -608,29 +661,38 @@ def generate_and_save_predictions(plate_path,batch_size,model_path_seg,model_pat
             lateral_image = load_image(lateral_img_path,'rgb',trans)
             types = types + ['dor','lat']
             images = images + [dorsal_image,lateral_image]
-            images_bool.append(torch.cat((lateral_image,dorsal_image),dim=1))
+            #IMPORTANTE EL "255"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            images_bool.append(255*torch.cat((lateral_image,dorsal_image),dim=1))
             image_names = image_names + [image_name,image_name]
             image_names_bool.append(image_name)
             well_list.append(well)
             well_paths.append(well_path)
 
-            if batch == batch_size:
-                dict = predict_terato_masks_deep(images,image_names,mask_names,batch_size,types,model_seg,device)
+            if batch == batch_size or well_id == n_wells-1:
+                ini = time.time()
+                dict = predict_terato_masks_deep(images,image_names,mask_names,batch,types,model_seg,device)
+                time_predict_masks += time.time() - ini
                 for i, fish_name in enumerate(dict):
                     for j, mask in enumerate(dict[fish_name]):
+                        ini = time.time()
                         data_frame[column_names_area[j]].append(area(dict[fish_name][mask]))
-                        data_frame[column_names_area[j]].append(length(dict[fish_name][mask]))
+                        time_area += time.time() - ini
+                        ini = time.time()
+                        data_frame[column_names_length[j]].append(length(dict[fish_name][mask]))
+                        time_length += time.time() - ini
+                        ini = time.time()
                         generate_and_save_roi(dict[fish_name][mask],well_paths[i],mask)
+                        time_generate_rois += time.time() - ini
+                ini = time.time()
                 fenos = predict_terato_bools_deep(images_bool,image_names_bool,feno_names,model_bools,device)
+                time_predict_bools += time.time() - ini
                 for w,im in zip(well_list,image_names_bool):
                     available_fenos = {f.tag:f for f in w}
                     for feno in feno_names:
                         data_frame[feno].append(fenos[im][feno] > 0.5)
                         if feno in available_fenos:
                             if 'finished' in available_fenos[feno].attrib:
-                                if available_fenos[feno].attrib['value'] == 'ND':
-                                    available_fenos[feno].set('probability',available_fenos[feno].attrib['value'])
-                                else: available_fenos[feno].set('probability',-1)
+                                available_fenos[feno].set('probability',available_fenos[feno].attrib['value'])
                             else:
                                 available_fenos[feno].set("value",str(fenos[im][feno] > 0.5))
                                 available_fenos[feno].set("probability",str(fenos[im][feno]))
@@ -651,10 +713,21 @@ def generate_and_save_predictions(plate_path,batch_size,model_path_seg,model_pat
         else:
             for column_name in column_names_area + column_names_length + feno_names:
                 data_frame[column_name].append("NA")
-
-    for column in data_frame:
-        df[column] = data_frame[column]
-    df.to_csv(path_dataframe)
+    '''
+    Join both data_frames
+    '''
+    df2 = pd.DataFrame.from_dict(data_frame,orient='columns')
+    df3 = pd.merge(df,df2,on = 'well_folder')
+    df3.to_csv(path_dataframe,index = False)
+    '''
+    Update XML
+    '''
     tree = ET.ElementTree(plate)
     with open(xml_path, "wb") as fh:
         tree.write(fh)
+
+    print('Time predict masks', time_predict_masks)
+    print('Time area', time_area)
+    print('Time length', time_length)
+    print('Time genererate rois', time_generate_rois)
+    print('Time predict bools', time_predict_bools)

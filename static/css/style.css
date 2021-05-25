@@ -20,6 +20,16 @@
   font-family: 'Roboto', sans-serif;
 }
 
+.title_terato {
+  position: fixed;
+  top: 18%;
+  left: 4%;
+}
+
+.title_terato h1 {
+  font-size: 500%;
+}
+
 .center {
   margin: 0;
   position: fixed;
@@ -162,6 +172,14 @@
   position: fixed;
   top: 35%;
   left: 4%;
+}
+.page {
+  font-size: 30px;
+  font-family: 'Roboto', sans-serif;
+  color: black;
+  position: fixed;
+  bottom: 5vh;
+  right: 26vw;
 }
 
 .labels {
@@ -426,16 +444,21 @@
 
 .processed {
   position: absolute;
-  top: 20%;
-  right: 5%;
+  top: 19vh;
+  right: 1vw;
+}
+
+.processed2 {
+  position: relative;
+  padding-right: 15px;
   overflow-y: scroll;
   overflow-x: hidden;
   display: inline-block;
 }
 
-.processed button {
+.processed2 button {
   padding: 10px 25px;
-  font-size: 20px;
+  font-size: 120%;
   font-weight: 500;
   border: none;
   outline: none;
@@ -450,7 +473,7 @@
 
 .processed h1 {
   color: #000000;
-  font-size: 35px;
+  font-size: 300%;
   font-weight: 500;
 }
 
@@ -721,14 +744,6 @@
   display: block;
 }
 
-.page {
-  font-size: 30px;
-  font-family: 'Roboto', sans-serif;
-  color: black;
-  position: fixed;
-  bottom: 8%;
-  right: 26%;
-}
 
 /* Style the checkmark/indicator */
 .container .checkmark:after {

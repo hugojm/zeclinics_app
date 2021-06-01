@@ -1,6 +1,6 @@
 @import url("https://use.fontawesome.com/releases/v5.14.0/css/all.css");
 @import url("https://fonts.googleapis.com/css?family=Lato:300");
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
+
 
 .body_index {
   background-image: url('/static/img/background.gif');
@@ -12,17 +12,15 @@
 
 .body_terato {
   background-color: #fbdb7c;
-  font-family: 'Roboto', sans-serif;
 }
 
 .body_cardio {
   background-color: #7bd3cb;
-  font-family: 'Roboto', sans-serif;
 }
 
 .title_terato {
   position: fixed;
-  top: 18%;
+  top: 5%;
   left: 4%;
 }
 
@@ -30,6 +28,27 @@
   font-size: 500%;
 }
 
+.mca{
+   position: absolute;
+  width: 50%;
+  height: 40%;
+  top:80%;
+  left: 25%;
+}
+.pca{
+   position: absolute;
+  width: 50%;
+  height: 40%;
+  top:10%;
+  left: 25%;
+}
+.feno{
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  top:170%;
+  left: 28%;
+}
 .center {
   margin: 0;
   position: fixed;
@@ -68,7 +87,27 @@
   width: 50%;
   height: 50%;
 }
-
+.but_graphics {
+    border: 2;
+    width: 4%;
+    position: fixed;
+    left: 10%;
+    bottom: 4%;
+}
+.but_download2 {
+    border: 2;
+    width: 3%;
+    position: fixed;
+    left: 10%;
+    bottom: 5%;
+}
+.but_download {
+    border: 2;
+    width: 3%;
+    position: fixed;
+    left: 15%;
+    bottom: 4%;
+}
 .pos {
   margin: 0;
   position: fixed;
@@ -83,7 +122,7 @@
 }
 
 .but_home {
-  width: 25%;
+  width: 20%;
 }
 
 .home {
@@ -156,26 +195,26 @@
 
 .graphic1 {
   position: fixed;
-  right: 13%;
+  right: 31%;
   top: 10%;
-  height: 45%;
-  width: 35%;
+  height: 60%;
+  width: 25%;
 }
 
 .video {
   position: fixed;
-  top: 10%;
-  left: 10%;
+  top: 5%;
+  left: 2%;
 }
 
 .selector {
   position: fixed;
-  top: 35%;
+  top: 25%;
   left: 4%;
 }
 .page {
   font-size: 30px;
-  font-family: 'Roboto', sans-serif;
+
   color: black;
   position: fixed;
   bottom: 5vh;
@@ -195,7 +234,6 @@
   left: 0px;
   font-size: 19px;
   line-height: 1;
-  font-family: 'Roboto', sans-serif;
   color: black;
   border-radius: 38px;
 }
@@ -208,38 +246,58 @@
 
 .bool {
   font-size: 20px;
-  font-family: 'Roboto', sans-serif;
   color: black;
   border-spacing: 20px 0px;
   border-collapse: separate;
 }
 
 .bool_menu {
+  width: 55%;
+  height: 50%;
   padding-top: 10px;
   padding-bottom: 10px;
-  border: 5px solid black;
-  bottom: 20%;
-  right: 20%;
+  top: 45%;
+  left: 40%;
   position: fixed;
+  z-index: 100;
 }
+
 
 .metrics {
   font-size: 20px;
-  font-family: 'Roboto', sans-serif;
   color: black;
-  border-spacing: 50px 0px;
+  border-spacing: 0px 0px;
   border-collapse: separate;
 }
+
+.table>:not(caption)>*>* {
+    padding: .1rem .5rem !important;
+    background-color: var(--bs-table-bg);
+    border-bottom-width: 1px;
+    box-shadow: inset 0 0 0 9999px var(--bs-table-accent-bg);
+}
+
 
 .metrics_menu {
   padding-top: 10px;
   padding-bottom: 10px;
-  border: 5px solid black;
-  bottom: 10%;
-  right: 13%;
-  height: 32%;
-  width: 35%;
+  padding-left: 10px;
+  top: 10%;
+  right: 10%;
+  height: 45%;
+  width: 40%;
   position: fixed;
+
+}
+.show{
+  position: fixed;
+  right: 25%;
+  bottom: 15%;
+  height: 5%;
+  width: 10%;
+  font-size: 20px;
+  color: black;
+
 }
 
 .rectangle {
@@ -297,65 +355,20 @@
   border-collapse:separate;
   border-spacing:0;
 } */
+
 .box {
   position: fixed;
-  top: 30%;
+  top: 20%;
 }
 
 .refresh {
-  -webkit-appearance: button;
-  appearance: button;
-  outline: none;
-  background-color: black;
-  color: white;
-  border: none;
-  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
-  font-size: 20px;
-  width: 115px;
-  height: 47px;
-  top: 30%;
-  left: 25%;
+
+  top: 20%;
+  left: 18%;
   position: fixed;
 }
 
-.box select {
-  background-color: black;
-  color: white;
-  padding: 12px;
-  width: 300px;
-  border: none;
-  font-size: 20px;
-  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
-  -webkit-appearance: button;
-  appearance: button;
-  outline: none;
-}
 
-.box::before {
-  content: "\f13a";
-  font-family: "Font Awesome 5 Free";
-  font-weight: 900;
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 20%;
-  height: 100%;
-  text-align: center;
-  font-size: 28px;
-  line-height: 45px;
-  color: rgba(255, 255, 255, 0.5);
-  background-color: rgba(255, 255, 255, 0.1);
-  pointer-events: none;
-}
-
-.box:hover::before {
-  color: rgba(255, 255, 255, 0.6);
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.box select option {
-  padding: 30px;
-}
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
 
@@ -448,6 +461,18 @@
   right: 1vw;
 }
 
+.attributes {
+  position: fixed;
+  top: 22vh;
+  left: 2vw;
+
+}
+
+.attributes label{
+  font-size: 20px;
+  padding-top: 20px;
+}
+
 .processed2 {
   position: relative;
   padding-right: 15px;
@@ -456,20 +481,7 @@
   display: inline-block;
 }
 
-.processed2 button {
-  padding: 10px 25px;
-  font-size: 120%;
-  font-weight: 500;
-  border: none;
-  outline: none;
-  background: #000000;
-  color: #FBDF7D;
-  border-radius: 5px;
-  cursor: pointer;
-  z-index: 2;
-  margin-bottom: 10px;
-  display: inline-block;
-}
+
 
 .processed h1 {
   color: #000000;
@@ -653,7 +665,7 @@
 
 .basura.grande {
   height: 100%;
-  width: 100%;
+    width: 100%;
 }
 
 .basura2 {
@@ -693,7 +705,6 @@
   margin-bottom: 12px;
   cursor: pointer;
   font-size: 22px;
-  font-family: 'Roboto', sans-serif;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -811,10 +822,7 @@ dfn {
   font-style: italic
 }
 
-h1 {
-  font-size: 2em;
-  margin: .67em 0
-}
+
 
 mark {
   background: #ff0;
@@ -999,15 +1007,7 @@ html {
   height: 100%
 }
 
-body {
-  margin: 0;
-  min-height: 100%;
-  background-color: #fff;
-  font-family: Arial, sans-serif;
-  font-size: 14px;
-  line-height: 20px;
-  color: #333
-}
+
 
 img {
   max-width: 100%;
@@ -1161,16 +1161,8 @@ html[data-w-dynpage] [data-w-cloak] {
   vertical-align: middle !important
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-weight: bold;
-  margin-bottom: 10px
-}
 
-h1 {
-  font-size: 38px;
-  line-height: 44px;
-  margin-top: 20px
-}
+
 
 h2 {
   font-size: 32px;

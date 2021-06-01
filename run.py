@@ -17,7 +17,7 @@ import numpy as np
 import terato.display as Tox
 from pathlib import Path
 from flask import json
-from cardio.process import process_video
+from cardio.process import process_video, ecg, save_csv
 import heartpy as hp
 import matplotlib
 import json
@@ -29,6 +29,11 @@ from flaskwebgui import FlaskUI  # import FlaskUI
 import xml.etree.ElementTree as ET
 from tqdm import tqdm
 import glob
+from terato.exploratory_analysis import pca, Mca, doseperresponse
+import pandas as pd
+import shutil
+
+
 
 f = open('processing.txt', 'w')
 f.close()
@@ -46,7 +51,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 ui = FlaskUI(app, width=3000, height=3000, maximized=True)
 
-device = 'cpu'
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -78,6 +83,25 @@ def upload_cardio():
     print('You in cardio')
     if request.method == "POST":
         files = request.files.getlist("file[]")
+        fps = int(request.form['fps'])
+        base_it = int(request.form['base_it'])
+        update_it = int(request.form['update_it'])
+        skip_it = int(request.form['skip_it'])
+        for file in files:
+            if file and allowed_file_cardio(file.filename):
+                path_name = Path(file.filename)
+                path_name = os.path.join('./', path_name)
+                out = path_name.split('/');
+                lif = out[len(out)- 1];
+                lif = lif.split('.')[0]
+                lif_path = os.path.join(app.config['UPLOAD_FOLDER_CARDIO'], lif)
+                if not Path(lif_path).exists():
+                    os.mkdir(lif_path)
+                _,_ , a , v, metrics,_ = process_video(path_name,base_it=base_it, update_it=update_it, skip=skip_it, debug=True, gen_video=True, video_name='./static/videos/'+lif+'/video.webm', p_out_shape="original", fps = fps)
+                path = os.path.join('./', lif_path)
+                ecg(a,v, os.path.join(path,'ecg.html'), save=True)
+                _ = save_csv(metrics, path+'/')
+                return render_template('cardio.html', dict=metrics, lif = lif)
     processed = os.listdir(app.config['UPLOAD_FOLDER_CARDIO'])
     return render_template('upload_cardio.html', process=processed)
 
@@ -152,9 +176,9 @@ def create_mask(roi_paths, mask_name, well):
     cv2.fillPoly( img , [pts2], (255))
 
 #    img = Tox.obtain_mask(img,roi)
-    cv2.imwrite('static/temp/'+well+mask_name +'.png', img)
+    cv2.imwrite('static/temp/terato/'+well+mask_name +'.png', img)
 
-    img = cv2.imread('static/temp/'+well+mask_name +'.png')
+    img = cv2.imread('static/temp/terato/'+well+mask_name +'.png')
     img = (255-img)
 
     # convert to graky
@@ -186,7 +210,19 @@ def create_mask(roi_paths, mask_name, well):
     result[:, :, 3] = mask
 
     # save resulting masked image
-    cv2.imwrite('static/temp/'+well+mask_name+'.png', result)
+    cv2.imwrite('static/temp/terato/'+well+mask_name+'.png', result)
+
+def generate_plots(plate_path, plate):
+    df = pd.read_csv(os.path.join(plate_path, 'stats.csv'))
+    pca(df)
+    if not Path('static/temp/plots/'+plate+'/').exists():
+        os.mkdir('static/temp/plots/'+plate+'/')
+    Mca(df,'static/temp/plots/'+plate+'/mca.png')
+    doseperresponse(df, 'static/temp/plots/'+plate+'/')
+    os.rename('biplot_2d.png', 'static/temp/plots/'+plate+'/biplot_2d.png')
+
+
+
 
 @app.route('/upload.html', methods=['GET', 'POST'])
 def upload_file():
@@ -254,32 +290,46 @@ def terato():
         dirs2 = [dirname + "/" + sub for sub in dirs]
         dirs2.sort()
         images, phenotypes =dict_from_xml(dirname, plate_name)
+        generate_plots(dirname, plate_name)
         return render_template('terato2.html', plates=dirs2, plate_name=plate_name, data=phenotypes, images=images)
     else:
         print("fail")
 
 
-@app.route('/cardio.html', methods=['GET', 'POST'])
+def csv_to_dict(csv):
+    df = pd.read_csv(csv, header=None)
+    metrics = {}
+    for i in range(len(df.iloc[0,:])):
+        metrics[df.iloc[0,i]] = df.iloc[1,i]
+    return metrics
+
+@app.route('/download', methods=['GET', 'POST'])
+def download():
+    plate = request.args.get('plate', None)
+    shutil.make_archive(app.config['UPLOAD_FOLDER'] +'/'+ plate, 'zip', os.path.join(app.config['UPLOAD_FOLDER'], plate))
+    return send_from_directory(directory=app.config['UPLOAD_FOLDER'], filename=plate+'.zip', as_attachment=True)
+
+
+@app.route('/download_cardio', methods=['GET', 'POST'])
+def download_cardio():
+    lif = request.args.get('lif', None)
+    shutil.make_archive(app.config['UPLOAD_FOLDER_CARDIO'] +'/'+lif, 'zip', os.path.join(app.config['UPLOAD_FOLDER_CARDIO'], lif))
+    return send_from_directory(directory=app.config['UPLOAD_FOLDER_CARDIO'], filename=lif+'.zip', as_attachment=True)
+
+
+@app.route('/cardio', methods=['GET', 'POST'])
 def cardio():
     if request.method == "POST":
-        files = request.files.getlist("file[]")
-        for file in files:
-            if file and allowed_file_cardio(file.filename):
-                path_name = Path(file.filename)
-                path_name = os.path.join('./', path_name)
-                matplotlib.use('agg')
-                # masks_a, masks_v , a , v, _ = process_video(path_name,update_it=4, skip=1, debug=True, gen_video=False, video_name=os.path.join(app.config['UPLOAD_FOLDER_CARDIO'],'out.webm'),mode="ac", p_out_shape="original")
-                # hp.plotter(a[1],a[2],show=False, title='Atrium signal').savefig(os.path.join(app.config['UPLOAD_FOLDER_CARDIO'],'out1.png'))
-                # hp.plotter(v[1],v[2],show=False, title='Ventricle signal').savefig(os.path.join(app.config['UPLOAD_FOLDER_CARDIO'],'out2.png'))
-        with open('static/dict/metrics.pckl', 'rb') as handle:
-            metrics = pickle.load(handle)
-        return render_template('cardio.html', print=True, dict=metrics)
-    else:
-        with open('static/dict/metrics.pckl', 'rb') as handle:
-            metrics = pickle.load(handle)
-        return render_template('cardio.html', print=True, dict=metrics)
+        lif_name = request.form['submit_button']
+        lif_path = os.path.join(app.config['UPLOAD_FOLDER_CARDIO'], lif_name)
+        metrics = csv_to_dict(os.path.join(lif_path, lif_name+'.csv'))
+        return render_template('cardio.html', dict=metrics, lif = lif_name)
     return render_template('cardio.html', dict={})
 
+@app.route('/graphics')
+def graphics():
+    plate = request.args.get('plate', None)
+    return render_template('graphics.html', plate=plate)
 
 @app.route('/getmask/', methods=['GET', 'POST'])
 def getmask():
@@ -300,7 +350,7 @@ def getmask():
 def deletetemp():
     if request.method == "POST":
         print('prueba')
-        files = glob.glob('static/temp/*')
+        files = glob.glob('static/temp/terato/*')
         for f in files:
             print(f)
             os.remove(f)

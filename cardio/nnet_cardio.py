@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 # Load the model outside the function so it doesn't have to be loaded for every image
-model = torch.load('./static/weight/weights_cardio.pt')
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+model = torch.load('./static/weight/weights_cardio.pt', map_location=device).eval()
 
 def predict_heart_masks_deep(images,batch_size, model=model):
     images=np.array(images)
@@ -37,7 +37,8 @@ def predict_heart_masks_deep(images,batch_size, model=model):
     im = torch.swapaxes(torch.swapaxes(im, 2, 3), 1, 2)
 
     input_tensor = im.to(device)
-    output_tensor = model(input_tensor)#.to(device)
+    with torch.set_grad_enabled(False):
+        output_tensor = model(input_tensor)#.to(device)
 
     # Postprocess masks
     masks = np.zeros(shape=(batch_size,482, 408), dtype=np.float32)

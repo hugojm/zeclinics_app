@@ -1,18 +1,19 @@
 
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename= 'css/style.css') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- <title>Drag & Drop or Browse: File Upload | CodingNepal</title> -->
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
 </head>
 
 
 
 <body class="body_upload_cardio">
+
+
     <div class="home">
       <a href="{{ url_for('home') }}"><img class="but_home" src="{{url_for('static',filename='img/home_but.png')}}"></a>
     </div>
@@ -21,24 +22,46 @@
     <header>Drag & Drop to Upload Folder</header>
     <span>OR</span>
       <button>Browse Folder</button>
-      <form method=post enctype=multipart/form-data>
+      <form id="form1" method=post enctype=multipart/form-data>
         <input id="file_upload" type="file" webkitdirectory mozdirectory name='file[]' hidden onchange="this.form.submit()">
+        <div class="attributes">
+          <label for="fps">FPS:</label>
+          <input type="number" class="form-control" id="fps" name="fps" min=30 max=200 value=76>
+          <label for="quantity">Base iterations:</label>
+          <input type="number" class="form-control" id="base_it" name="base_it" min=1 value=120>
+          <label for="quantity">Update iterations:</label>
+          <input type="number" class="form-control" id="update_it" name="update_it" min=1 value=4>
+          <label for="quantity">Skip iterations:</label>
+          <input type="number" class="form-control" id="skip_it" name="skip_it" min=0 value=1>
+        </div>
       </form>
     <div class="basura2">
-        <form method=post enctype=multipart/form-data>
+        <form id="form2" method=post enctype=multipart/form-data>
+          <div class="attributes" hidden>
+            <label for="quantity">FPS:</label>
+            <input type="number" id="fps" name="fps" min="30" max="200" value="76">
+            <label for="quantity">Base iterations:</label>
+            <input type="number" id="base_it" name="base_it" min="1" value="120">
+            <label for="quantity">Update iterations:</label>
+            <input type="number" id="update_it" name="update_it" min="1" value="4">
+            <label for="quantity">Skip iterations:</label>
+            <input type="number" id="skip_it" name="skip_it" min="0" value="1">
+          </div>
             <input id="input-folder-2" name="file[]" onchange="this.form.submit()" class="basura" type="file" multiple webkitdirectory accept="image/*" size="50px">
         </form>
     </div>
   </div>
 <div id="errorBlock" class="help-block"></div>
 <div id="process_list" class="processed">
-  <h1>Processed Lifs</h1>
+  <h2>Processed Lifs</h2>
   {% for files in process %}
-  <form action="/terato" method="post">
-    <button name="submit_button" value="{{files}}">{{files}}</button>
+  <form action="/cardio" method="post">
+    <button class="btn btn-outline-dark"  name="submit_button" value="{{files}}">{{files}}</button>
   </form>
   {% endfor %}
 </div>
+
+
 <script>
 $(document).on('ready', function() {
     $("#input-folder-2").fileinput({

@@ -7,13 +7,14 @@ import os
 import numpy as np
 from os import listdir
 from os.path import isfile, join
-from preprocess import lifpreprocess
-from active_contours import ac_masks
-from nnet_cardio import nnet_masks
+from cardio.preprocess import lifpreprocess
+from cardio.active_contours import ac_masks
+from cardio.nnet_cardio import nnet_masks
 
 import cv2
-from metrics import dict_metrics
+from cardio.metrics import dict_metrics
 import matplotlib.pyplot as plt
+import matplotlib
 
 from scipy.fftpack import fft
 from scipy.signal import butter, lfilter, filtfilt
@@ -22,7 +23,11 @@ from scipy import ndimage
 from scipy import signal
 import heartpy as hp
 import warnings
+import mpld3
+import csv
+
 warnings.filterwarnings("error")
+warnings.simplefilter("ignore", ResourceWarning)
 
 #FOR optimization
 import gc
@@ -30,6 +35,7 @@ import gc
 #FOR debugging
 import time
 
+matplotlib.use('Agg')
 
 def read(path,debug=False):
     if debug:
@@ -102,8 +108,8 @@ def extract_metrics(atrium, ventricle, filter_signal, lowcut, highcut, fps):
         y_atrium=atrium
 
     try:
-        _, m = hp.process(np.array(y_atrium), sample_rate = fps)
-        peaks_a = m['peaks']
+        n, m = hp.process(np.array(y_atrium), sample_rate = fps)
+        peaks_a = n['peaklist']
         abpm = m['bpm']
         bad_atrium=False
     except Warning:
@@ -112,8 +118,8 @@ def extract_metrics(atrium, ventricle, filter_signal, lowcut, highcut, fps):
         bad_atrium=True
 
     try:
-        _, m = hp.process(np.array(y_ventricle), sample_rate = fps)
-        peaks_v = m['peaks']
+        n, m = hp.process(np.array(y_ventricle), sample_rate = fps)
+        peaks_v = n['peaklist']
         vbpm = m['bpm']
         bad_ventricle=False
     except Warning:
@@ -141,22 +147,42 @@ def scale_signals(v, a):
     div = max(max(v),max(a))
     return v/(div), a/div #(div-div+1)
 
-def ecg(atrium, ventricle, save=False):
+def ecg(atrium, ventricle,path, save=False):
     ventricle, atrium = scale_signals(ventricle, atrium)
 
     # Invert ventricle signal
     inv_atrium = -atrium-max(-atrium)+max(atrium)
 
     # Plot
-    fig = plt.figure(figsize=(25,10))
+    fig = plt.figure(figsize=(8,4))
     ax = fig.add_subplot(111)
     ax.plot(ventricle, 'cornflowerblue', label = 'Ventricle')
     ax.plot(inv_atrium, 'indianred', label = 'Atrium')
     ax.set(ylim=(min(ventricle)-0.03, max(ventricle)+0.02))
     ax.legend(loc='lower right', shadow=True, ncol=2)
     if save:
-        ax.savefig('ecg.png')
-        plt.close(ax)
+        mpld3.save_html(fig, path)
+        plt.close(fig)
+
+def save_csv(dict,path,debug=False):
+    csv_columns = ['video','fps','active_contours','bad_atrium_signal','bad_ventricle_signal','a_beating','v_beating','a_bpm','v_bpm','longest_a','longest_v','shortest_a','shortest_v','ef_a','ef_v','qt_mean','arrhythmia_1','arrhythmia_2']
+    name=dict['video']
+    csv_file = path + ('output' if name =='unknown' else name)+".csv"
+    try:
+        with open(csv_file, 'w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
+            writer.writeheader()
+            for key in csv_columns:
+                if key!='arrhythmia_2':
+                    csvfile.write("%s,"%(dict[key]))
+                else:
+                    csvfile.write("%s"%(dict[key]))
+
+        return csv_file
+
+    except IOError:
+        if debug:
+            print("I/O error for the CSV creation")
 
 
 def generate_video(video_frames, masks_a, masks_v, fps, video_name, debug=False):
@@ -249,6 +275,13 @@ def process_video(input_video, base_it=120, update_it=4, skip=1, memory_it=1, bo
 
     metrics=dict_metrics(frame_a,peaks_a,abpm,frame_v,peaks_v,vbpm,fps=fps,bad_atrium=bad_atrium,bad_ventricle=bad_ventricle,debug=debug)
 
+    video_data = {}
+    video_data['video']=((input_video.split('/')[-1]).split('.')[0] if isinstance(input_video,str) else 'unknown')
+    video_data['fps']=fps
+    video_data['active_contours']=str(base_it)+' '+str(update_it)+' '+str(skip)
+
+    final_metrics = {**metrics, **video_data}
+
     video_path=None
     if gen_video:
         video_path = generate_video(video,masks_a=masks_a,masks_v=masks_v,video_name=video_name,fps=fps,debug=debug)
@@ -258,7 +291,7 @@ def process_video(input_video, base_it=120, update_it=4, skip=1, memory_it=1, bo
     gc.collect()
     #############
 
-    return masks_a, masks_v, frame_a, frame_v, metrics, video_path
+    return masks_a, masks_v, frame_a, frame_v, final_metrics, video_path
 
 
 def process_multiple(input_multiple, base_it=120, update_it=4, skip=1, memory_it=1, border_removal=20, filter_signal=False, lowcut=10, highcut=350, fps=76, p_index=2, p_out_shape=(482,408), gen_video=False, video_name='.webm', p_store=False, p_out_dir='output', debug=False):

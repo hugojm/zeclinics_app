@@ -105,14 +105,14 @@ def dict_metrics(atrium,peaks_a,abpm,ventricle,peaks_v,vbpm,fps,bad_atrium,bad_v
 
     metrics_dict = {}
 
-    metrics_dict['bad_ventricle_signal']=bad_ventricle
-    metrics_dict['bad_atrium_signal']=bad_atrium
+    metrics_dict['bad_ventricle_signal']=bool(bad_ventricle)
+    metrics_dict['bad_atrium_signal']=bool(bad_atrium)
 
     vbpm = len(peaks_v)/len(ventricle) * fps * 60
     abpm = len(peaks_a)/len(atrium) * fps * 60
 
-    metrics_dict['v_beating'] = is_beating_or_cardiac_arrest(vbpm,fps,peaks_v)
-    metrics_dict['a_beating'] = is_beating_or_cardiac_arrest(abpm,fps,peaks_a)
+    metrics_dict['v_beating'] = bool(is_beating_or_cardiac_arrest(vbpm,fps,peaks_v))
+    metrics_dict['a_beating'] = bool(is_beating_or_cardiac_arrest(abpm,fps,peaks_a))
 
     metrics_dict['v_bpm'] = (metrics_dict['v_beating'])*vbpm
     metrics_dict['a_bpm'] = (metrics_dict['a_beating'])*abpm
@@ -130,8 +130,8 @@ def dict_metrics(atrium,peaks_a,abpm,ventricle,peaks_v,vbpm,fps,bad_atrium,bad_v
 
     metrics_dict['qt_mean'] = 0#qt(peaks_a, peaks_v)
 
-    metrics_dict['arrhythmia_1'] = arithmia_by_longest_shortest(metrics_dict['longest_v'],metrics_dict['shortest_v'])
-    metrics_dict['arrhythmia_2'] = arithmia_by_distance_distribution(peaks_v,fps)
+    metrics_dict['arrhythmia_1'] = bool(arithmia_by_longest_shortest(metrics_dict['longest_v'],metrics_dict['shortest_v']))
+    metrics_dict['arrhythmia_2'] = bool(arithmia_by_distance_distribution(peaks_v,fps))
 
     if debug:
         print("METRIC EXTRACTION: Elapsed time = ",time.time()-start)

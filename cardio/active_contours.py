@@ -14,7 +14,7 @@ from skimage.segmentation import (morphological_chan_vese,
                                   morphological_geodesic_active_contour,
                                   inverse_gaussian_gradient,
                                   checkerboard_level_set)
-import nnet_cardio as nn
+import cardio.nnet_cardio as nn
 #FOR debugging
 import time
 import matplotlib.pyplot as plt
@@ -24,7 +24,7 @@ def area(mask):
     return min(counts)
 
 def max_heart_mask(video,debug=False):
-    masks=nn.nnet_masks(video,batch_size=5,debug=debug)
+    masks=nn.nnet_masks(video[:50],batch_size=5,debug=debug)
     max_mask = 0
     max_val = 0
     for i in range(len(masks)):

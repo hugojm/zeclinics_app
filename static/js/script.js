@@ -1,3 +1,4 @@
+
 //selecting all required elements
 const dropArea = document.querySelector(".drag-area"),
 dragText = dropArea.querySelector("header"),
@@ -21,6 +22,14 @@ lines.addEventListener("dragover", (event)=>{
 
 //If user leave dragged File from DropArea
 lines.addEventListener("dragleave", ()=>{
+    var rect = lines.getBoundingClientRect();
+    event.preventDefault(); //preventing from default behaviour
+    if (event.pageX < rect.right &&
+        event.pageX > rect.left &&
+        event.pageY < rect.bottom &&
+        event.pageY > rect.top) {
+            return false;
+        }
   lines.classList.remove("active2");
   selector.classList.remove("grande");
   dragText.textContent = "Drag & Drop to Upload Folder";

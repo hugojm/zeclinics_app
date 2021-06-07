@@ -610,8 +610,8 @@ def generate_and_save_predictions(plate_path,batch_size,model_path_seg,model_pat
     df = pd.DataFrame(columns=['plate', 'well_folder', 'compound', 'dose', 'dead120', 'dead24'])
 
     trans = transforms.Compose([transforms.ToTensor()])
-    model_seg = torch.load(f'./{model_path_seg}', map_location=device).eval()
-    model_bools = torch.load(f'./{model_path_bools}', map_location=device).eval()
+    model_seg = torch.load(model_path_seg, map_location=device).eval()
+    model_bools = torch.load(model_path_bools, map_location=device).eval()
     plate_name = plate_path.split('/')[-1]
     xml_path = plate_path + "/" + plate_name + ".xml"
     tree = ET.parse(xml_path)

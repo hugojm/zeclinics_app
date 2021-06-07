@@ -1,0 +1,3 @@
+[console_scripts]
+zeclinicsapp = zeclinics_app:start
+

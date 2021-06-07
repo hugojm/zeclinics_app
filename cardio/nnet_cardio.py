@@ -1,18 +1,21 @@
 #
 # VERSION 2.1
 #
-
+import os
 import time
 import torch
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
+from pathlib import Path
 
 # Load the model outside the function so it doesn't have to be loaded for every image
+model_path = Path(os.path.abspath(__file__)).parent.parent / 'zeclinics_app' / 'static' / 'weight' / 'weightsMobileNet_heart.pt'
 
+# Load the model outside the function so it doesn't have to be loaded for every image
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model = torch.load('./static/weight/weights_cardio.pt', map_location=device).eval()
+model = torch.load(model_path,map_location=device).eval()
 
 def predict_heart_masks_deep(images,batch_size, model=model):
     images=np.array(images)

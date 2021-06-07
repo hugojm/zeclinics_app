@@ -1,0 +1,65 @@
+<!doctype html>
+  <title>Cardio</title>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename= 'css/style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+  </head>
+  <body class="body_cardio">
+    <div class="home">
+      <a href="{{ url_for('home') }}"><img class="but_home" src="{{url_for('static',filename='img/home_but.png')}}"></a>
+    </div>
+    <a href="{{ url_for('download_cardio', lif=lif) }}"><img class="but_download2" src="{{url_for('static',filename='img/but_download.png')}}">
+    </a>
+    <div class="graphic1" id='plot' style="display:none;">
+    </div>
+    <div class="video" id='video'>
+      <video width="540" height="620" controls>
+        <source src="{{ url_for('static', filename='videos/'+ lif +'/video.webm')}}" type="video/webm" codecs='vp8.0, vorbis'>
+      </video>
+    </div>
+    <button type="button" id='plot_show' class="show btn btn-outline-dark" name="show_plot" onclick="show_plot()">Show plot</button>
+    <div class="metrics_menu" id="bool">
+      <table class="table table-bordered table-hover"  id="bool_text"> </table> </div>
+    </div>
+
+    <script type="text/javascript">
+        var keys = ['video','fps','active_contours','bad_atrium_signal','bad_ventricle_signal','a_beating','v_beating','a_bpm','v_bpm','longest_a','longest_v','shortest_a','shortest_v','ef_a','ef_v','qt_mean','arrhythmia_1','arrhythmia_2']
+        var metrics = {'video':'Video name', 'fps': 'FPS', 'active_contours':'AC parameters','bad_atrium_signal':'Atrium Bad Signal','bad_ventricle_signal':'Ventricle Bad Signal','a_beating':'Atrium Beating','v_beating':'Ventricle Beating' ,'a_bpm':'Atrium BPM','v_bpm':'Ventricle BPM','longest_v': 'Longest time w/o a beat ventricle' , 'longest_a': 'Longest time w/o a beat atrium', 'shortest_v' : 'Shortest time w/o a beat ventricle' , 'shortest_a' : 'Shortest time w/o a beat atrium', 'ef_v' : 'Ejection Fraction ventricle', 'ef_a' : 'Ejection Fraction atrium', 'qt_mean': 'Qt mean', 'arrhythmia_1': 'Arrhythmia by longest/shortest', 'arrhythmia_2' : 'Arrhythmia by peak distance distribution'};
+        var data = {{ dict|tojson }};
+        var text = document.getElementById("bool_text");
+        text.innerHTML = '';
+        text.innerHTML += '<thead class="table-dark"><tr><th scope="col">Metric</th><th scope="col">Values</th></tr> </thead> <tbody>';
+        keys.forEach((metric) => {
+          if(isNaN(parseFloat(data[metric])) || metric == 'video' || metric == 'active_contours' || metric == 'fps'){
+            text.innerHTML += '<tr style="padding-bottom:1px;"><td >'+ metrics[metric] + '</td><td style="text-align: right;">' + data[metric] + '</td></tr>';
+          }else{
+            text.innerHTML += '<tr><td>'+ metrics[metric] + '</td><td style="text-align: right;">' + parseFloat(data[metric]).toFixed(3) + '</td></tr>';
+          }
+        });
+        text.innerHTML += '</tbody>'
+        document.getElementById("bool").style.display = "block";
+        var graphic= document.getElementById("plot");
+
+        function show_plot(){
+
+          if (document.getElementById("plot").style.display == "none"){
+            document.getElementById("bool").style.display = "none";
+            document.getElementById("plot").style.display = "block";
+            document.getElementById("plot_show").innerHTML = "Show metrics";
+          }else{
+            document.getElementById("bool").style.display = "block";
+            document.getElementById("plot").style.display = "none";
+            document.getElementById("plot_show").innerHTML = "Show plot";
+          }
+        }
+
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script >
+    $(function(){
+      $("#plot").load("{{ url_for('static', filename='videos/'+ lif +'/ecg.html')}}");
+    });
+    </script>
+  </body>

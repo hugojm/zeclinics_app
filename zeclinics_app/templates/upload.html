@@ -1,0 +1,124 @@
+
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename= 'css/style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <title>Drag & Drop or Browse: File Upload | CodingNepal</title> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+</head>
+
+
+
+<body class="body_upload">
+    <div class="home">
+      <a href="{{ url_for('home') }}"><img class="but_home" src="{{url_for('static',filename='img/home_but.png')}}"></a>
+    </div>
+  <div class="drag-area">
+    <div class="icon"><i class="fas fa-cloud-upload-alt"></i></div>
+    <header>Drag & Drop to Upload Folder</header>
+    <span>OR</span>
+      <button>Browse Folder</button>
+      <form method=post enctype=multipart/form-data>
+        <input id="file_upload" type="file" webkitdirectory mozdirectory name='file[]' hidden onchange="this.form.submit()">
+      </form>
+    <div class="basura2">
+        <form method=post enctype=multipart/form-data>
+            <input id="input-folder-2" name="file[]" onchange="this.form.submit()" class="basura" type="file" multiple webkitdirectory accept="image/*" size="50px">
+        </form>
+    </div>
+  </div>
+<div id="errorBlock" class="help-block"></div>
+
+
+<div id="process_list" class="processed">
+    <h2>Processed Plates</h2>
+ <div id="process_list" class="processed2">
+  {% for files in process %}
+  <div class="form-inline">
+  <form action="/terato" method="post">
+    <button name="submit_button" class="btn btn-outline-dark btn-sm" value="{{files}}">{{files}}</button>
+</form>
+<button name="delete_button" class="btn btn-outline-dark btn-sm" value="delete" style="margin-left:10px;" onclick="delete_plate_java('{{files}}')"><i class="fa fa-trash" aria-hidden="true"></i></button>
+
+  </div>
+  {% endfor %}
+</div>
+</div>
+
+<script>
+$(document).on('ready', function() {
+    $("#input-folder-2").fileinput({
+        browseLabel: 'Select Folder...',
+        previewFileIcon: '<i class="fa fa-file"></i>',
+        allowedPreviewTypes: null, // set to empty, null or false to disable preview for all types
+        previewFileIconSettings: {
+            'doc': '<i class="fa fa-file-word-o text-primary"></i>',
+            'xls': '<i class="fa fa-file-excel-o text-success"></i>',
+            'ppt': '<i class="fa fa-file-powerpoint-o text-danger"></i>',
+            'jpg': '<i class="fa fa-file-photo-o text-warning"></i>',
+            'pdf': '<i class="fa fa-file-pdf-o text-danger"></i>',
+            'zip': '<i class="fa fa-file-archive-o text-muted"></i>',
+            'htm': '<i class="fa fa-file-code-o text-info"></i>',
+            'txt': '<i class="fa fa-file-text-o text-info"></i>',
+            'mov': '<i class="fa fa-file-movie-o text-warning"></i>',
+            'mp3': '<i class="fa fa-file-audio-o text-warning"></i>',
+        },
+        previewFileExtSettings: {
+            'doc': function(ext) {
+                return ext.match(/(doc|docx)$/i);
+            },
+            'xls': function(ext) {
+                return ext.match(/(xls|xlsx)$/i);
+            },
+            'ppt': function(ext) {
+                return ext.match(/(ppt|pptx)$/i);
+            },
+            'jpg': function(ext) {
+                return ext.match(/(jp?g|png|gif|bmp)$/i);
+            },
+            'xlm': function(ext) {
+                return ext.match(/(xlm)$/i);
+            },
+            'lif': function(ext) {
+                return ext.match(/(lif)$/i);
+            },
+        }
+    });
+});
+</script>
+<script type="text/javascript">
+var delete_plate;
+
+$().ready(function(){
+    //jQuery function
+    delete_plate = function( _msg )
+    {
+      console.log(_msg)
+      $.ajax({
+        type : 'POST',
+        dataType: 'json',
+        url : "{{url_for('deleteplate')}}",
+        contentType: 'application/json;charset=UTF-8',
+        data : JSON.stringify(_msg),
+        async: false
+      });
+    }
+})
+
+function delete_plate_java(plate){
+  var result = confirm("Want to delete " + plate + "?");
+  if (result) {
+    delete_plate(plate);
+    location.reload();
+  }
+
+
+};
+</script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

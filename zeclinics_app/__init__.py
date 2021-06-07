@@ -36,16 +36,20 @@ f = open('processing.txt', 'w')
 f.close()
 
 root_package = Path(os.path.abspath(__file__)).parent
+print(root_package)
 static_path = root_package / 'static'
 templates_path = root_package / 'templates'
 
 UPLOAD_FOLDER = str(static_path/'images')
 UPLOAD_FOLDER_CARDIO = str(static_path/'videos')
 
-try:
+if not os.path.isdir(str(static_path / 'temp')):
+    os.makedirs(str(static_path / 'temp'))
+if not os.path.isdir(str(static_path / 'temp/terato')):
     os.makedirs(str(static_path / 'temp/terato'))
-except:
-    pass
+if not os.path.isdir(str(static_path / 'temp/plots')):
+    os.makedirs(str(static_path / 'temp/plots'))
+
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'xml'}
 ALLOWED_EXTENSIONS_CARDIO = {'lif'}

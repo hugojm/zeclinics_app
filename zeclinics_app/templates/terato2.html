@@ -292,7 +292,6 @@
         div.innerHTML = 'Page ' + parseInt(position+1) + ' of ' + positions;
         var path = document.getElementById("comp_select").value;
         var plate = {{ plates|tojson }};
-        console.log(plate);
         var div = document.getElementById("lateral_div");
         div.innerHTML = '';
         var div2 = document.getElementById("dorsal_div");
@@ -318,11 +317,11 @@
             }
           }
           if (sum == set_size & set_size >0){
-            console.log(plate[i]);
+            console.log( plate[i] + '/' + images[well][1]);
             div.innerHTML += '<img src=' + plate[i] + '/' + images[well][1] + ' id="'+ plate[i] +'" onclick="image(this)" style="border: 4px solid red;border-right-width: 0px;"/>';
             div.innerHTML += '<img src=' + plate[i] + '/' + images[well][0] + ' id="'+ plate[i] +'" onclick="image(this)" style="border: 4px solid red;border-left-width: 0px;"/>';
           }else{
-            console.log(plate[i]);
+            console.log( plate[i] + '/' + images[well][1]);
             div.innerHTML += '<img src=' + plate[i] + '/' + images[well][1] + ' id="'+ plate[i] +'" onclick="image(this)"/>';
             div.innerHTML += '<img src=' + plate[i] + '/' + images[well][0] + ' id="'+ plate[i] +'" onclick="image(this)" />';
           }

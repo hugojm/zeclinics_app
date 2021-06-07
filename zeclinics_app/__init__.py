@@ -337,6 +337,8 @@ def cardio():
 @app.route('/graphics')
 def graphics():
     plate = request.args.get('plate', None)
+    for file in os.listdir(str(static_path / 'temp/plots') +'/'+ plate):
+        print(file)
     return render_template('graphics.html', plate=plate)
 
 @app.route('/getmask/', methods=['GET', 'POST'])

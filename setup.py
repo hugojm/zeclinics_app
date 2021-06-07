@@ -15,6 +15,8 @@ setup(
         "Pillow",
         "torch",
         "read_roi",
+        "roifile",
+        "scikit-image",
         "opencv-python",
         "imageio",
         "scipy<=1.4.1",
@@ -31,7 +33,8 @@ setup(
         "altair",
         "bioinfokit",
         "prince==0.6",
-        "scikit-learn"
+        "scikit-learn",
+        "mpld3"
     ],
     package_data={
         'zeclinics_app': ['templates/*','static/css/*', 'static/images/*', 'static/img/*', 'static/js/*', 'static/videos/*', 'static/weight/*'],

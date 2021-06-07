@@ -54,7 +54,7 @@ if not os.path.isdir(str(static_path / 'temp/plots')):
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'xml'}
 ALLOWED_EXTENSIONS_CARDIO = {'lif'}
 
-app = Flask(__name__, static_url_path=str(static_path), template_folder = str(templates_path))
+app = Flask(__name__, static_folder=str(static_path), template_folder = str(templates_path))
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['UPLOAD_FOLDER_CARDIO'] = UPLOAD_FOLDER_CARDIO
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0

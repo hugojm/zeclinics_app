@@ -497,7 +497,7 @@ def generate_and_save_roi(mask,well_path,mask_name):
     if mask_name != "eyes_dor":
 
         contours, _ = cv2.findContours(mask2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        contours = np.array(contours)
+        contours = np.array(contours, dtype='object')
         c = None
         for i in range(contours.shape[0]):
             if i == 0:
@@ -524,7 +524,7 @@ def generate_and_save_roi(mask,well_path,mask_name):
 
         # Extract contours
         roi_up, _ = cv2.findContours(up_eye_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        roi_up = np.array(roi_up)
+        roi_up = np.array(roi_up, dtype='object')
         c = None
         for i in range(roi_up.shape[0]):
             if i == 0:
@@ -545,7 +545,7 @@ def generate_and_save_roi(mask,well_path,mask_name):
             print("error in mask:",mask_name)
 
         roi_down, _ = cv2.findContours(down_eye_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        roi_down = np.array(roi_down)
+        roi_down = np.array(roi_down, dtype='object')
         c = None
         for i in range(roi_down.shape[0]):
             if i == 0:

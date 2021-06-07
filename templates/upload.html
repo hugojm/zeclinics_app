@@ -103,7 +103,8 @@ $().ready(function(){
         dataType: 'json',
         url : "{{url_for('deleteplate')}}",
         contentType: 'application/json;charset=UTF-8',
-        data : JSON.stringify(_msg)
+        data : JSON.stringify(_msg),
+        async: false
       });
     }
 })

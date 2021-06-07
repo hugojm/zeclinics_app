@@ -472,8 +472,8 @@
           var div = document.getElementById(type+"_div");
           if (type == 'eyes_dorsal'){
             var div2 = document.getElementById('eyes2_dorsal_div');
-            div.innerHTML = '<img src={{url_for('static',filename= '')}}'+ temp +"/"+well+ 'eye_up_dorsal.png' + ' style="opacity: 0.5;"'+ '/>';
-            div2.innerHTML = '<img src={{url_for('static',filename= '')}}'+ temp +"/"+well+ 'eye_down_dorsal.png' + ' style="opacity: 0.5;"'+ '/>';
+            div.innerHTML = '<img src={{url_for('static',filename= '')}}'+ temp +well+ 'eye_up_dorsal.png' + ' style="opacity: 0.5;"'+ '/>';
+            div2.innerHTML = '<img src={{url_for('static',filename= '')}}'+ temp + well+ 'eye_down_dorsal.png' + ' style="opacity: 0.5;"'+ '/>';
           }else{
             div.innerHTML = '<img src={{url_for('static',filename= '')}}'+ image + ' style="opacity: 0.5;"'+ '/>';
           }

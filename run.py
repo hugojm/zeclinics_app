@@ -33,6 +33,11 @@ from terato.exploratory_analysis import pca, Mca, doseperresponse
 import pandas as pd
 import shutil
 
+try:
+    os.makedirs('./static/temp/terato')
+except:
+    pass
+
 
 
 f = open('processing.txt', 'w')
@@ -307,15 +312,17 @@ def csv_to_dict(csv):
 def download():
     plate = request.args.get('plate', None)
     shutil.make_archive(app.config['UPLOAD_FOLDER'] +'/'+ plate, 'zip', os.path.join(app.config['UPLOAD_FOLDER'], plate))
-    return send_from_directory(directory=app.config['UPLOAD_FOLDER'], filename=plate+'.zip', as_attachment=True)
-
+    zip_file = send_from_directory(directory=app.config['UPLOAD_FOLDER'], filename=plate+'.zip', as_attachment=True)
+    os.remove(app.config['UPLOAD_FOLDER'] +'/'+ plate + '.zip')
+    return zip_file
 
 @app.route('/download_cardio', methods=['GET', 'POST'])
 def download_cardio():
     lif = request.args.get('lif', None)
     shutil.make_archive(app.config['UPLOAD_FOLDER_CARDIO'] +'/'+lif, 'zip', os.path.join(app.config['UPLOAD_FOLDER_CARDIO'], lif))
-    return send_from_directory(directory=app.config['UPLOAD_FOLDER_CARDIO'], filename=lif+'.zip', as_attachment=True)
-
+    zip_file = send_from_directory(directory=app.config['UPLOAD_FOLDER_CARDIO'], filename=lif+'.zip', as_attachment=True)
+    os.remove(app.config['UPLOAD_FOLDER_CARDIO'] +'/'+ lif + '.zip')
+    return zip_file
 
 @app.route('/cardio', methods=['GET', 'POST'])
 def cardio():
@@ -362,10 +369,22 @@ def deleteplate():
     if request.method == "POST":
         data = json.loads(request.data)
         try:
-            os.rmdir(UPLOAD_FOLDER + '/' + data)
+            shutil.rmtree(UPLOAD_FOLDER + '/' + data)
             print('hola2')
         except:
             os.remove(UPLOAD_FOLDER + '/' + data)
+            print('hola1')
+    return 'hola'
+
+@app.route('/deletelif/', methods=['GET', 'POST'])
+def deletelif():
+    if request.method == "POST":
+        data = json.loads(request.data)
+        try:
+            shutil.rmtree(UPLOAD_FOLDER_CARDIO + '/' + data)
+            print('hola2')
+        except:
+            os.remove(UPLOAD_FOLDER_CARDIO + '/' + data)
             print('hola1')
     return 'hola'
 

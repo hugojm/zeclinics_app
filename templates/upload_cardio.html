@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- <title>Drag & Drop or Browse: File Upload | CodingNepal</title> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
 </head>
@@ -58,6 +59,7 @@
   <form action="/cardio" method="post">
     <button class="btn btn-outline-dark"  name="submit_button" value="{{files}}">{{files}}</button>
   </form>
+  <button name="delete_button" class="btn btn-outline-dark btn-sm" value="delete" style="margin-left:10px;" onclick="delete_plate_java('{{files}}')"><i class="fa fa-trash" aria-hidden="true"></i></button>
   {% endfor %}
 </div>
 
@@ -102,6 +104,35 @@ $(document).on('ready', function() {
         }
     });
 });
+</script>
+<script type="text/javascript">
+var delete_plate;
+
+$().ready(function(){
+    //jQuery function
+    delete_plate = function( _msg )
+    {
+      console.log(_msg)
+      $.ajax({
+        type : 'POST',
+        dataType: 'json',
+        url : "{{url_for('deletelif')}}",
+        contentType: 'application/json;charset=UTF-8',
+        data : JSON.stringify(_msg),
+        async: false
+      });
+    }
+})
+
+function delete_plate_java(plate){
+  var result = confirm("Want to delete " + plate + "?");
+  if (result) {
+    delete_plate(plate);
+    location.reload();
+  }
+
+
+};
 </script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/script2.js') }}"></script>
 </body>

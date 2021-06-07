@@ -30,7 +30,8 @@ setup(
         "readlif",
         "altair",
         "bioinfokit",
-        "prince"
+        "prince",
+        "scikit-learn"
     ],
     package_data={
         'zeclinics_app': ['templates/*','static/css/*', 'static/images/*', 'static/img/*', 'static/js/*', 'static/videos/*', 'static/weight/*'],

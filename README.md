@@ -35,7 +35,7 @@ cd ..
 rmdir /s zeclinics_app
 ```
 
-Check where the directory where the package has been installed and run the file:
+Check the directory where the package has been installed and run the file:
 
 ```
 zeclinics.exe

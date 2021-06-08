@@ -35,9 +35,8 @@ cd ..
 rmdir /s zeclinics_app
 ```
 
-Now, we have the library installed, so every time we want to deploy the app we have to run in the terminal the following command:
+Check where the directory where the package has been installed and run the file:
 
 ```
-zeclinicsapp
-open 127.0.0.1:5000 in any browser
+zeclinics.exe
 ```

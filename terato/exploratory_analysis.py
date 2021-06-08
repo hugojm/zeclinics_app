@@ -45,7 +45,7 @@ def pca(df):
 def plot_coordinates(mca, X, ax=None, figsize=(10,8), x_component=0, y_component=1, show_column_points=True, column_points_size=100, show_column_labels=True, legend_n_cols=1):
 
 
-    mca._check_is_fitted()
+    #mca._check_is_fitted()
 
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)

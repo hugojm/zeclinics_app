@@ -40,9 +40,8 @@ print(root_package)
 static_path = root_package / 'static'
 templates_path = root_package / 'templates'
 
-UPLOAD_FOLDER = str(static_path/'images')
-UPLOAD_FOLDER_CARDIO = str(static_path/'videos')
-
+if not os.path.isdir(str(static_path / 'videos')):
+    os.makedirs(str(static_path / 'videos'))
 if not os.path.isdir(str(static_path / 'temp')):
     os.makedirs(str(static_path / 'temp'))
 if not os.path.isdir(str(static_path / 'temp/terato')):
@@ -50,6 +49,8 @@ if not os.path.isdir(str(static_path / 'temp/terato')):
 if not os.path.isdir(str(static_path / 'temp/plots')):
     os.makedirs(str(static_path / 'temp/plots'))
 
+UPLOAD_FOLDER = str(static_path/'images')
+UPLOAD_FOLDER_CARDIO = str(static_path/'videos')
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'xml'}
 ALLOWED_EXTENSIONS_CARDIO = {'lif'}
@@ -225,8 +226,8 @@ def generate_plots(plate_path, plate):
     print(plate_path,plate)
     df = pd.read_csv(os.path.join(plate_path, 'stats.csv'))
     pca(df)
-    if not Path(str(static_path / 'temp/plots')+'/'+plate+'/').exists():
-        os.mkdir(str(static_path / 'temp/plots')+'/'+plate+'/')
+    if not Path(str(static_path / 'temp/plots')+'/'+plate).exists():
+        os.mkdir(str(static_path / 'temp/plots')+'/'+plate)
     Mca(df,str(static_path / 'temp/plots')+'/'+plate+'/mca.png')
     doseperresponse(df, str(static_path / 'temp/plots')+'/'+plate+'/')
     os.rename('biplot_2d.png', str(static_path / 'temp/plots')+'/'+plate+'/biplot_2d.png')
@@ -341,9 +342,11 @@ def cardio():
 @app.route('/graphics')
 def graphics():
     plate = request.args.get('plate', None)
+    plot=None
     for file in os.listdir(str(static_path / 'temp/plots') +'/'+ plate):
-        print(file)
-    return render_template('graphics.html', plate=plate)
+        if file[-4:]=='html' and file != '3,4-DCAfeno.html':
+            plot=file
+    return render_template('graphics.html', plate=plate, plot=plot)
 
 @app.route('/getmask/', methods=['GET', 'POST'])
 def getmask():

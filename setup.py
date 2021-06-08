@@ -22,7 +22,7 @@ setup(
         "scipy<=1.4.1",
         "torchvision",
         "matplotlib<=3.1.2",
-        "numpy<=1.17",
+        "numpy",
         "pathlib",
         "heartpy",
         "flaskwebgui",
@@ -32,7 +32,7 @@ setup(
         "readlif",
         "altair",
         "bioinfokit",
-        "prince==0.6",
+        "prince==0.7",
         "scikit-learn",
         "mpld3"
     ],

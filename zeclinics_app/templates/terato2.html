@@ -292,6 +292,7 @@
         div.innerHTML = 'Page ' + parseInt(position+1) + ' of ' + positions;
         var path = document.getElementById("comp_select").value;
         var plate = {{ plates|tojson }};
+        var sep = {{ sep|tojson }};
         var div = document.getElementById("lateral_div");
         div.innerHTML = '';
         var div2 = document.getElementById("dorsal_div");
@@ -307,7 +308,7 @@
         div_plate.innerHTML = '';
         for (var i = initial; i <= final; i++){
           var div = document.getElementById("plate");
-          var out = plate[i].split('/');
+          var out = plate[i].split(sep);
           var well = out[out.length - 1];
           var set_size = selected_pheno.size;
           var sum = 0;
@@ -316,14 +317,12 @@
               sum = sum + 1;
             }
           }
-          if (sum == set_size & set_size >0){
-            console.log( plate[i] + '/' + images[well][1]);
-            div.innerHTML += '<img src=' + plate[i] + '/' + images[well][1] + ' id="'+ plate[i] +'" onclick="image(this)" style="border: 4px solid red;border-right-width: 0px;"/>';
-            div.innerHTML += '<img src=' + plate[i] + '/' + images[well][0] + ' id="'+ plate[i] +'" onclick="image(this)" style="border: 4px solid red;border-left-width: 0px;"/>';
+          if (sum == set_size & set_size >0)
+            div.innerHTML += '<img src=' + plate[i] + sep + images[well][1] + ' id="'+ plate[i] +'" onclick="image(this)" style="border: 4px solid red;border-right-width: 0px;"/>';
+            div.innerHTML += '<img src=' + plate[i] + sep + images[well][0] + ' id="'+ plate[i] +'" onclick="image(this)" style="border: 4px solid red;border-left-width: 0px;"/>';
           }else{
-            console.log( plate[i] + '/' + images[well][1]);
-            div.innerHTML += '<img src=' + plate[i] + '/' + images[well][1] + ' id="'+ plate[i] +'" onclick="image(this)"/>';
-            div.innerHTML += '<img src=' + plate[i] + '/' + images[well][0] + ' id="'+ plate[i] +'" onclick="image(this)" />';
+            div.innerHTML += '<img src=' + plate[i] + sep + images[well][1] + ' id="'+ plate[i] +'" onclick="image(this)"/>';
+            div.innerHTML += '<img src=' + plate[i] + sep + images[well][0] + ' id="'+ plate[i] +'" onclick="image(this)" />';
           }
         }
 
@@ -385,18 +384,18 @@
         right.style.display = "none";
         var div = document.getElementById("page");
         div.innerHTML = '';
-        var out = path.split('/');
+        var out = path.split(sep);
         var well = out[out.length - 1];
         var div_plate = document.getElementById("plate");
         div_plate.innerHTML = '';
         var div = document.getElementById("lateral_div");
-        div.innerHTML = '<img src=' + path + '/' + images[well][1]  + '/>';
+        div.innerHTML = '<img src=' + path + sep + images[well][1]  + '/>';
         var div2 = document.getElementById("dorsal_div");
-        div2.innerHTML = '<img src='+ path + '/' +images[well][0] + '/>';
+        div2.innerHTML = '<img src='+ path + sep +images[well][0] + '/>';
         types.forEach((item) => {
           calc(item);
         });
-        var out = path.split('/');
+        var out = path.split(sep);
         var data_to_plot = {
         header: ["Phenotype", "Probability"],
         rows: [
@@ -465,7 +464,7 @@
       {
       var e = document.getElementById("comp_select");
       var path = e.value;
-      var out = path.split('/');
+      var out = path.split(sep);
       var well = out[out.length - 1];
       if(path != "default"){
         if (document.getElementById(type).checked)
@@ -474,13 +473,12 @@
           var div = document.getElementById(type+"_div");
           if (type == 'eyes_dorsal'){
             var div2 = document.getElementById('eyes2_dorsal_div');
-            div.innerHTML = '<img src={{url_for('static',filename= '')}}'+ temp + '/' + well + 'eye_up_dorsal.png' + ' style="opacity: 0.5;"'+ '/>';
-            div2.innerHTML = '<img src={{url_for('static',filename= '')}}'+ temp + '/' + well + 'eye_down_dorsal.png' + ' style="opacity: 0.5;"'+ '/>';
+            div.innerHTML = '<img src={{url_for('static',filename= '')}}'+ temp + sep + well + 'eye_up_dorsal.png' + ' style="opacity: 0.5;"'+ '/>';
+            div2.innerHTML = '<img src={{url_for('static',filename= '')}}'+ temp + sep + well + 'eye_down_dorsal.png' + ' style="opacity: 0.5;"'+ '/>';
           }else{
             div.innerHTML = '<img src={{url_for('static',filename= '')}}'+ image + ' style="opacity: 0.5;"'+ '/>';
           }
-        }
-        else{
+        }else{
           document.getElementById(type+"_div").innerHTML = '';
           if (type == 'eyes_dorsal')  document.getElementById('eyes2_dorsal_div').innerHTML = '';
         }

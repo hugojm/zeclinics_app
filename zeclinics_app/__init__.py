@@ -187,9 +187,9 @@ def create_mask(roi_paths, mask_name, well):
     cv2.fillPoly( img , [pts2], (255))
 
 #    img = Tox.obtain_mask(img,roi)
-    cv2.imwrite(str(static_path /'temp'/'terato'/'well'/mask_name/'.png'), img)
+    cv2.imwrite(str(static_path /'temp'/'terato'/'well'/(mask_name +'.png'))), img)
 
-    img = cv2.imread(str(static_path /'temp'/'terato'/'well'/mask_name/'.png'))
+    img = cv2.imread(str(static_path /'temp'/'terato'/'well'/(mask_name+'.png')))
     img = (255-img)
 
     # convert to graky
@@ -221,7 +221,7 @@ def create_mask(roi_paths, mask_name, well):
     result[:, :, 3] = mask
 
     # save resulting masked image
-    cv2.imwrite(str(static_path /'temp'/'terato'/'well'/mask_name/'.png'), result)
+    cv2.imwrite(str(static_path /'temp'/'terato'/'well'/(mask_name +'.png')), result)
 
 def generate_plots(plate_path, plate):
     print(plate_path,plate)
@@ -283,7 +283,7 @@ def upload_file():
         dirs = [name for name in os.listdir(dirname) if os.path.isdir(os.path.join(dirname, name))]
         dirs2 = [str(Path(dirname) / sub) for sub in dirs]
         dirs2.sort()
-        images, phenotypes =dict_from_xml(dirname, plate_name)
+        images, phenotypes =dict_from_xml(dirname, str(plate_name))
         return render_template('terato2.html', plates=dirs2, done=True, data=phenotypes, images=images)
     if not Path(app.config['UPLOAD_FOLDER']).exists():
         os.mkdir(app.config['UPLOAD_FOLDER'])
@@ -302,7 +302,7 @@ def terato():
         dirs2.sort()
         images, phenotypes =dict_from_xml(dirname, plate_name)
         generate_plots(str(dirname), plate_name)
-        return render_template('terato2.html', plates=dirs2, plate_name=plate_name, data=phenotypes, images=images)
+        return render_template('terato2.html', plates=dirs2, plate_name=plate_name, data=phenotypes, images=images, sep = os.sep)
     else:
         print("fail")
 
@@ -346,7 +346,7 @@ def graphics():
     for file in os.listdir(str(static_path / 'temp' / 'plots' / plate)):
         if file[-4:]=='html' and file != '3,4-DCAfeno.html':
             plot=file
-    return render_template('graphics.html', plate=plate, plot=plot)
+    return render_template('graphics.html', plate=plate, plot=plot,sep=os.sep)
 
 @app.route('/getmask/', methods=['GET', 'POST'])
 def getmask():
@@ -382,10 +382,10 @@ def deleteplate():
     if request.method == "POST":
         data = json.loads(request.data)
         try:
-            shutil.rmtree(UPLOAD_FOLDER / data)
+            shutil.rmtree(app.config['UPLOAD_FOLDER'] / data)
             print('hola2')
         except:
-            os.remove(UPLOAD_FOLDER / data)
+            os.remove(app.config['UPLOAD_FOLDER']  / data)
             print('hola1')
     return 'hola'
 
@@ -394,10 +394,10 @@ def deletelif():
     if request.method == "POST":
         data = json.loads(request.data)
         try:
-            shutil.rmtree(UPLOAD_FOLDER_CARDIO / data)
+            shutil.rmtree(app.config['UPLOAD_FOLDER_CARDIO']  / data)
             print('hola2')
         except:
-            os.remove(UPLOAD_FOLDER_CARDIO / data)
+            os.remove(app.config['UPLOAD_FOLDER_CARDIO']/ data)
             print('hola1')
     return 'hola'
 

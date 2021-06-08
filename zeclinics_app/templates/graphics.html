@@ -10,11 +10,11 @@
   <body class="body_terato">
     <div class="mca">
       <h1>MCA</h1>
-      <img src="{{url_for('static',filename='temp/plots/'+plate+'/mca.png')}}">
+      <img src="{{url_for('static',filename='temp'+sep+'plots'+sep+plate+sep+'mca.png')}}">
     </div>
     <div class="pca">
       <h1>PCA</h1>
-      <img src="{{url_for('static',filename='temp/plots/'+plate+'/biplot_2d.png')}}">
+      <img src="{{url_for('static',filename='temp'+sep+'plots'+sep+plate+sep+'biplot_2d.png')}}">
     </div>
 
     <div class="feno" id='plot'>
@@ -24,7 +24,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script>
     $(function(){
-      $("#plot").load("{{url_for('static',filename='temp/plots/'+plate+'/'+plot)}}");
+      $("#plot").load("{{url_for('static',filename='temp'+sep+'plots'+sep+plate+sep+'+plot)}}");
     });
     </script>
   </body>

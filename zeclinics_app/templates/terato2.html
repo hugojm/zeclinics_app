@@ -245,8 +245,10 @@
     var pheno = {'bodycurvature':'Body curvature','yolkedema':'Yolk edema','necrosis':'Necrosis','tailbending':'Tail Bending','notochorddefects':'Notochord defects','craniofacialedema':'Craniofacial edema','finabsence':'Fin absence','scoliosis':'Scoliosis','snoutjawdefects':'Snout jaw defects','otolithsdefects':'Otoliths defects'}
     var types = ["eyes_dorsal", "heart_lateral", "fishoutline_dorsal", "fishoutline_lateral", "ov_lateral", "yolk_lateral"];
     var data = {{ data|tojson }};
-    var images = {{ images|tojson }}
-
+    var images = {{ images|tojson }};
+    var sep = {{sep|tojson}};
+    console.log('Holaaaaaaaa')
+    console.log(sep)
     {% if plates is defined and plates %}
     var list = {{ plates|tojson }};
     var positions = Math.ceil(list.length / 10);
@@ -292,7 +294,6 @@
         div.innerHTML = 'Page ' + parseInt(position+1) + ' of ' + positions;
         var path = document.getElementById("comp_select").value;
         var plate = {{ plates|tojson }};
-        var sep = {{ sep|tojson }};
         var div = document.getElementById("lateral_div");
         div.innerHTML = '';
         var div2 = document.getElementById("dorsal_div");
@@ -310,6 +311,7 @@
           var div = document.getElementById("plate");
           var out = plate[i].split(sep);
           var well = out[out.length - 1];
+          var plate_name = out[out.length - 2];
           var set_size = selected_pheno.size;
           var sum = 0;
           for (let item of selected_pheno){
@@ -317,12 +319,14 @@
               sum = sum + 1;
             }
           }
-          if (sum == set_size & set_size >0)
-            div.innerHTML += '<img src=' + plate[i] + sep + images[well][1] + ' id="'+ plate[i] +'" onclick="image(this)" style="border: 4px solid red;border-right-width: 0px;"/>';
-            div.innerHTML += '<img src=' + plate[i] + sep + images[well][0] + ' id="'+ plate[i] +'" onclick="image(this)" style="border: 4px solid red;border-left-width: 0px;"/>';
+          if (sum == set_size & set_size >0){
+            console.log(images[well][1])
+            div.innerHTML += '<img src={{url_for('static',filename= '')}}' + 'images' +sep+ plate_name +sep+ well +sep+ images[well][1] + ' id="'+ plate[i] +'" onclick="image(this)" style="border: 4px solid red;border-right-width: 0px;"/>';
+            div.innerHTML += '<img src={{url_for('static',filename= '')}}' + 'images' +sep+ plate_name +sep+ well +sep+ images[well][0] + ' id="'+ plate[i] +'" onclick="image(this)" style="border: 4px solid red;border-left-width: 0px;"/>';
           }else{
-            div.innerHTML += '<img src=' + plate[i] + sep + images[well][1] + ' id="'+ plate[i] +'" onclick="image(this)"/>';
-            div.innerHTML += '<img src=' + plate[i] + sep + images[well][0] + ' id="'+ plate[i] +'" onclick="image(this)" />';
+            console.log(images[well][1])
+            div.innerHTML += '<img src={{url_for('static',filename= '')}}' + 'images' +sep+ plate_name +sep+ well +sep+ images[well][1] + ' id="'+ plate[i] +'" onclick="image(this)"/>';
+            div.innerHTML += '<img src={{url_for('static',filename= '')}}' + 'images' +sep+ plate_name +sep+ well +sep+ images[well][0] + ' id="'+ plate[i] +'" onclick="image(this)" />';
           }
         }
 
@@ -386,12 +390,14 @@
         div.innerHTML = '';
         var out = path.split(sep);
         var well = out[out.length - 1];
+        var plate = out[out.length - 2];
         var div_plate = document.getElementById("plate");
         div_plate.innerHTML = '';
         var div = document.getElementById("lateral_div");
-        div.innerHTML = '<img src=' + path + sep + images[well][1]  + '/>';
+        console.log(well,images[well][1])
+        div.innerHTML = '<img src={{url_for('static',filename= '')}}' + 'images' +sep+ plate +sep+ well +sep+ images[well][1] + ' />';
         var div2 = document.getElementById("dorsal_div");
-        div2.innerHTML = '<img src='+ path + sep +images[well][0] + '/>';
+        div2.innerHTML = '<img src={{url_for('static',filename= '')}}' + 'images' +sep+ plate +sep+ well +sep+ images[well][0] + ' />';
         types.forEach((item) => {
           calc(item);
         });
@@ -469,7 +475,7 @@
       if(path != "default"){
         if (document.getElementById(type).checked)
         {
-          var image = temp + "/" + well + type + ".png"
+          var image = temp + sep + well + type + ".png";
           var div = document.getElementById(type+"_div");
           if (type == 'eyes_dorsal'){
             var div2 = document.getElementById('eyes2_dorsal_div');
@@ -487,7 +493,6 @@
 
 // display image selected in overview
     function image(element){
-
       document.getElementById("comp_select").value = element.id
       select_well();
 

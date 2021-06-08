@@ -173,4 +173,4 @@ def doseperresponse(df, path):
                 tooltip = ["dosecount:Q", "feno:N", "prob_ill:Q"]
             ).transform_filter(selector).add_selection(selector).properties(title = c)
         chart = (doseresponse + baseline).properties(height=700,width=500)
-        chart.save(str(Path(path / (c + "feno" + ".html"))))
+        chart.save(str(Path(path) / (c + "feno" + ".html")))

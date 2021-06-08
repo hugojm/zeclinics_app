@@ -187,9 +187,9 @@ def create_mask(roi_paths, mask_name, well):
     cv2.fillPoly( img , [pts2], (255))
 
 #    img = Tox.obtain_mask(img,roi)
-    cv2.imwrite(str(static_path /'temp'/'terato'/'well'/(mask_name +'.png'))), img)
+    cv2.imwrite(str(static_path /'temp'/'terato'/(well+mask_name +'.png')), img)
 
-    img = cv2.imread(str(static_path /'temp'/'terato'/'well'/(mask_name+'.png')))
+    img = cv2.imread(str(static_path /'temp'/'terato'/(well+mask_name+'.png')))
     img = (255-img)
 
     # convert to graky
@@ -221,7 +221,7 @@ def create_mask(roi_paths, mask_name, well):
     result[:, :, 3] = mask
 
     # save resulting masked image
-    cv2.imwrite(str(static_path /'temp'/'terato'/'well'/(mask_name +'.png')), result)
+    cv2.imwrite(str(static_path /'temp'/'terato'/(well+mask_name +'.png')), result)
 
 def generate_plots(plate_path, plate):
     print(plate_path,plate)
@@ -284,7 +284,7 @@ def upload_file():
         dirs2 = [str(Path(dirname) / sub) for sub in dirs]
         dirs2.sort()
         images, phenotypes =dict_from_xml(dirname, str(plate_name))
-        return render_template('terato2.html', plates=dirs2, done=True, data=phenotypes, images=images)
+        return render_template('terato2.html', plates=dirs2, done=True, data=phenotypes, images=images,sep=os.sep)
     if not Path(app.config['UPLOAD_FOLDER']).exists():
         os.mkdir(app.config['UPLOAD_FOLDER'])
     processed = os.listdir(app.config['UPLOAD_FOLDER'])

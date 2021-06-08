@@ -24,7 +24,7 @@ setup(
         "matplotlib<=3.1.2",
         "numpy",
         "pathlib",
-        "heartpy",
+        "heartpy==1.2.6",
         "flaskwebgui",
         "tqdm",
         "importlib_resources",
@@ -32,7 +32,7 @@ setup(
         "readlif",
         "altair",
         "bioinfokit",
-        "prince==0.7",
+        "prince",
         "scikit-learn",
         "mpld3"
     ],

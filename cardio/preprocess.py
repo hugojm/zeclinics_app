@@ -75,11 +75,11 @@ def lifpreprocess(path,out_dir='output',index_of_interest=2,out_shape='original'
     directory = os.path.isdir(path)
     if(directory):
         path_files = [f for f in listdir(path) if isfile(join(path, f))]
-        lif_imgs = [LifFile(path+'/'+subpath).get_image(index_of_interest) for subpath in path_files]
+        lif_imgs = [LifFile(path+os.sep+subpath).get_image(index_of_interest) for subpath in path_files]
     else:
         #We will not create a sub-directory output
         out_dir = ''
-        path_files = [path.split('/')[-1]]
+        path_files = [path.split(os.sep)[-1]]
         lif_imgs = [LifFile(path).get_image(index_of_interest)]
     num_imgs = len(lif_imgs)
 
@@ -108,7 +108,7 @@ def lifpreprocess(path,out_dir='output',index_of_interest=2,out_shape='original'
             return lif_imgs_frames[0]
 
     #Save arrays in disk
-    out_dir+='/'
+    out_dir+=os.sep
     if(directory and not os.path.exists(out_dir)):
         os.mkdir(out_dir)
     if(not directory):
@@ -117,7 +117,7 @@ def lifpreprocess(path,out_dir='output',index_of_interest=2,out_shape='original'
         current_img=lif_imgs_frames[i]
         os.mkdir(out_dir+path_files[i].split(".")[0])
         for j in range(len(current_img)):
-            save(out_dir+path_files[i].split(".")[0]+"/"+path_files[i].split(".")[0]+"_"+str(j),current_img[j])
+            save(out_dir+path_files[i].split(".")[0]+os.sep+path_files[i].split(".")[0]+"_"+str(j),current_img[j])
 
     #FREE MEMORY#
     del lif_imgs_frames

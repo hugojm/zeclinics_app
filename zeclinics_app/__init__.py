@@ -100,18 +100,21 @@ def upload_cardio():
         skip_it = int(request.form['skip_it'])
         for file in files:
             if file and allowed_file_cardio(file.filename):
-                path_name = Path(file.filename)
-                path_name = os.path.join('./', path_name)
+
+                path_name = file.filename
+                path_name = Path(path_name)
                 out = path_name.parts
                 lif = out[-1]
                 lif = lif.split('.')[0]
                 lif_path = os.path.join(app.config['UPLOAD_FOLDER_CARDIO'], lif)
                 if not Path(lif_path).exists():
                     os.mkdir(lif_path)
-                _,_ , a , v, metrics,_ = process_video(path_name,base_it=base_it, update_it=update_it, skip=skip_it, debug=True, gen_video=True, video_name=str(static_path / 'videos')+'/'+lif+'/video.webm', p_out_shape="original", fps = fps)
-                path = os.path.join('./', lif_path)
-                ecg(a,v, os.path.join(path,'ecg.html'), save=True)
-                _ = save_csv(metrics, path)
+                print(lif_path)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER_CARDIO'], out[-1]))
+                _,_ , a , v, metrics,_ = process_video(str(os.path.join(app.config['UPLOAD_FOLDER_CARDIO'], out[-1])),base_it=base_it, update_it=update_it, skip=skip_it, debug=True, gen_video=True, video_name=str(static_path / 'videos'/ lif / 'video.webm'), p_out_shape="original", fps = fps)
+                ecg(a,v, os.path.join(str(lif_path),'ecg.html'), save=True)
+                _ = save_csv(metrics, str(lif_path))
+                os.remove(os.path.join(app.config['UPLOAD_FOLDER_CARDIO'], out[-1]))
                 return render_template('cardio.html', dict=metrics, lif = lif)
     processed = os.listdir(app.config['UPLOAD_FOLDER_CARDIO'])
     return render_template('upload_cardio.html', process=processed)
@@ -231,6 +234,8 @@ def generate_plots(plate_path, plate):
         os.mkdir(str(static_path / 'temp' / 'plots' / plate))
     Mca(df,str(static_path / 'temp' / 'plots' / plate / 'mca.png'))
     doseperresponse(df, str(static_path / 'temp' / 'plots' / plate))
+    if (static_path / 'temp' / 'plots' / plate / 'biplot_2d.png').exists():
+        os.remove(str(static_path / 'temp' / 'plots' / plate / 'biplot_2d.png'))
     os.rename('biplot_2d.png', str(static_path / 'temp' / 'plots' / plate / 'biplot_2d.png'))
 
 

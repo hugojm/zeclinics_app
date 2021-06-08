@@ -53,22 +53,22 @@ def read(path,debug=False):
     #Check if we have one or many videos to treat
     # if there are subfolders --> many
     # if there are files inside --> one
-    directory = os.path.isdir(path+'/'+path_files[0])
+    directory = os.path.isdir(path+os.sep+path_files[0])
     if directory:
         num_files=len(path_files)
         img_arrays= [None] * num_files
         for i in range(num_files):
-            files = [f for f in listdir(path+"/"+path_files[i]) if isfile(join(path+"/"+path_files[i], f))]
+            files = [f for f in listdir(path+os.sep+path_files[i]) if isfile(join(path+os.sep+path_files[i], f))]
             num_frames=len(files)
             frames_arrays= [None] * num_frames
             for j in range(num_frames):
-                frames_arrays[j]=np.load(path+"/"+path_files[i]+"/"+files[j])
+                frames_arrays[j]=np.load(path+os.sep+path_files[i]+os.sep+files[j])
             img_arrays[i]=frames_arrays
     else:
         num_files=len(path_files)
         img_arrays= [None] * num_files
         for i in range(num_files):
-            img_arrays[i]=np.load(path+'/'+path_files[i])
+            img_arrays[i]=np.load(path+os.sep+path_files[i])
 
     print("READ & LOAD: Elapsed time = ", time.time()-start)
 
@@ -277,7 +277,7 @@ def process_video(input_video, base_it=120, update_it=4, skip=1, memory_it=1, bo
     metrics=dict_metrics(frame_a,peaks_a,abpm,frame_v,peaks_v,vbpm,fps=fps,bad_atrium=bad_atrium,bad_ventricle=bad_ventricle,debug=debug)
 
     video_data = {}
-    video_data['video']=((input_video.split('/')[-1]).split('.')[0] if isinstance(input_video,str) else 'unknown')
+    video_data['video']=((input_video.split(os.sep)[-1]).split('.')[0] if isinstance(input_video,str) else 'unknown')
     video_data['fps']=fps
     video_data['active_contours']=str(base_it)+' '+str(update_it)+' '+str(skip)
 

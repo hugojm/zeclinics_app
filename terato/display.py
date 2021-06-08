@@ -17,6 +17,7 @@ from copy import copy, deepcopy
 from torchvision import transforms
 from read_roi import read_roi_file
 from roifile import ImagejRoi
+from pathlib import Path
 
 '''
 Loads an image from a path, applies transforms to it and returns it as a tensor
@@ -172,6 +173,9 @@ def save_mask_prediction(mask, mask_path, threshold = 0.5):
     #hist = cv.calcHist([mask],[0],None,[256],[0,256])
     cv2.imwrite(mask_path,mask)
 
+'''
+Given a ellipse roi, samples points from the ellipse and returns an array
+'''
 def ellipse_to_pol(roi):
     pts = []
     p1 = np.array([roi['ex1'],roi['ey1']])
@@ -186,9 +190,10 @@ def ellipse_to_pol(roi):
     for i in vec2:
         pts.append([i,-b*math.sqrt(1-((i-c[0])**2/a**2))+c[1]])
     return np.array(pts, 'int32')
-
-# Given the path of the image and its corresponding roi returns the image with a mask
-# built from the roi
+'''
+Given an image (usually a black image) and its corresponding roi,
+returns the image with a mask built from the roi
+'''
 def obtain_mask(img,roi):
     if roi['type'] in ['polygon', 'traced']:
         pts = zip(roi['x'],roi['y'])
@@ -213,13 +218,14 @@ input:
 def read_roi_and_get_mask(roi_paths,mask_names,root_data_folder,mask_folder,im_type,image_name,shape):
     #Create Black image to put the masks on:
     mask_img = np.zeros(shape, np.uint8)
+    root_data_folder = Path(root_data_folder)
     for i,(roi_path,mask_name) in enumerate(zip(roi_paths, mask_names)):
         #Get the roi
         roi = read_roi_file(roi_path)[mask_name]
         #Create the mask
         mask_img = obtain_mask(mask_img,roi)
         #Define the path to be written to
-        mask_path = root_data_folder + "/" + mask_folder + "/" + image_name + "_" + im_type + ".jpg"
+        mask_path = root_data_folder / mask_folder / (image_name + "_" + im_type + ".jpg")
     return mask_path, mask_img
 
 '''
@@ -229,11 +235,11 @@ the input images folder, creates all the folders if they are not yet created
 def create_directories(output_root,mask_folders,images_folder):
     if not os.path.exists(output_root):
         os.system("mkdir " + output_root)
-    if not os.path.exists(output_root + "/" + images_folder):
-        os.system("mkdir " + output_root + "/" + images_folder)
+    if not os.path.exists(str(Path(output_root  /  images_folder))):
+        os.system("mkdir " + str(Path(output_root  /  images_folder)))
     for folder in mask_folders:
-        if not os.path.exists(output_root + "/" + folder):
-            os.system("mkdir " + output_root + "/" + folder)
+        if not os.path.exists(str(Path(output_root  /  folder))):
+            os.system("mkdir " + str(Path(output_root  /  folder)))
 
 '''
 given an image name in the form: plate_name + _ + well_name + _ + type + .jpg,
@@ -251,9 +257,21 @@ def parse_image_name(image_name,has_tail):
     if has_tail: well_name = well_name[:-8]
     return plate_name, well_name
 
+'''
+Creates all the masks and necessary data structure for training the segmentation
+and boolean classification models.
+
+input:
+    raw_data_path: List pf paths of the experiments, example: ['BAT1','BAT2']
+    output_folder: Path where everything will be saved.
+    masks_names: dictionary used in order to generate the masks:
+        keys: name of the mask
+        value: List of names of the rois that are used to generate that mask
+'''
 def data_generation_pipeline(raw_data_paths, output_folder, masks_names):
+    output_folder = Path(output_folder)
     # Create the folders if they are not created yet
-    create_directories(output_folder, masks_names.keys(), 'Images')
+    create_directories(str(output_folder), masks_names.keys(), 'Images')
     # Initialize the different lists of image_names
     complete_fishes = []
     complete_bools = []
@@ -261,18 +279,19 @@ def data_generation_pipeline(raw_data_paths, output_folder, masks_names):
     #init stats csv file
     feno_names = ['bodycurvature', 'yolkedema', 'necrosis', 'tailbending', 'notochorddefects', 'craniofacialedema', 'finabsence', 'scoliosis', 'snoutjawdefects', 'otolithsdefects']
     fieldnames = ['experiment','plate','well','image_name','compound','exposure','dose','Image_lat','Image_dor'] + list(masks_names.keys()) + feno_names
-    with open(os.path.join(output_folder, 'stats.csv'), 'w', newline='') as csvfile:
+    with open(os.path.join(str(output_folder), 'stats.csv'), 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
     # Iterate over every plate
     for raw_data_path in raw_data_paths:
-        experiment_name = raw_data_path.split('/')[-1]
+        raw_data_path = Path(raw_data_path)
+        experiment_name = raw_data_path.parts[-1]
         print(f'Generating: {experiment_name}\'s Data')
         for plate_name in tqdm(os.listdir(raw_data_path)):
-            plate_path = raw_data_path + "/" + plate_name
+            plate_path = raw_data_path / plate_name
             #Some plates don't have an XML:
             try:
-                tree = ET.parse(plate_path + "/" + plate_name + ".xml")
+                tree = ET.parse(str(plate_path / (plate_name + ".xml")))
             except:
                 print(f'{plate_name} has no XML')
                 continue
@@ -286,11 +305,11 @@ def data_generation_pipeline(raw_data_paths, output_folder, masks_names):
                     stats = {f:None for f in fieldnames}
                     # If we iterate over the well we obtain the boolean features and other stuff
                     well_name = well.attrib['well_folder']
-                    well_path = plate_path + "/" + well_name
+                    well_path = plate_path / well_name
 
                     # Images' paths
-                    dorsal_img_path = well_path + "/" + well.attrib['dorsal_image']
-                    lateral_img_path = well_path + "/" + well.attrib['lateral_image']
+                    dorsal_img_path = well_path / well.attrib['dorsal_image']
+                    lateral_img_path = well_path / well.attrib['lateral_image']
                     image_name = plate_name + "_" + well_name
                     # This list will contain pairs of (path, image) that will be written at the end if there are no errors.
                     outputs = []
@@ -303,14 +322,14 @@ def data_generation_pipeline(raw_data_paths, output_folder, masks_names):
                     stats['dose'] = well.attrib['dose']
                     try:
                         im_lat = cv2.imread(lateral_img_path, 1)
-                        outputs.append((output_folder + "/Images/" + image_name + "_lat.jpg", im_lat))
+                        outputs.append((str(output_folder / "Images" / (image_name + "_lat.jpg")), im_lat))
                         all_fishes.append(image_name + '_lat.jpg')
                         stats['Image_lat'] = True
                     except:
                         stats['Image_lat'] = False
                     try:
                         im_dor = cv2.imread(dorsal_img_path, 1)
-                        outputs.append((output_folder + "/Images/" + image_name + "_dor.jpg", im_dor))
+                        outputs.append((str(output_folder / "Images" / (image_name + "_lat.jpg")), im_dor))
                         stats['Image_dor'] = True
                         all_fishes.append(image_name + '_dor.jpg')
                     except:
@@ -321,7 +340,7 @@ def data_generation_pipeline(raw_data_paths, output_folder, masks_names):
                     for masks in masks_names.values():
                         roi_names = []
                         for mask in masks:
-                            roi_names.append(well_path + '/' + mask + '.roi')
+                            roi_names.append(str(well_path / (mask +'.roi')))
                         roi_paths.append(roi_names)
 
                     # We get the shape of the original image to create the mask
@@ -457,6 +476,13 @@ def predict_terato_masks_deep(images,image_names,mask_names,batch_size, orientat
 
     return masks_dict
 
+'''
+Given the eyes mask, splits the mask in two and returns the mask
+of the upper and down eyes.
+
+This is done by splitting horizontally by the middle vertical point
+of the bounding box of the input mask.
+'''
 def split_eye_masks(mask):
     mask2 = np.array(mask*255,dtype=np.uint8)
     x, y, width, height = cv2.boundingRect(mask2)
@@ -488,7 +514,10 @@ class ROI_TYPE(enum.IntEnum):
     TRACED = 8
     ANGLE = 9
     POINT = 10
-
+'''
+Given a mask, the well path and the mask name, gets the contour of the mask
+and saves the roi with it's corresponding format in the well folder.
+'''
 # Mask is the loaded mask, tensor
 # Well path where to save the roi
 # Mask_name is outline_dor, ov_dor,...
@@ -497,7 +526,7 @@ def generate_and_save_roi(mask,well_path,mask_name):
     if mask_name != "eyes_dor":
 
         contours, _ = cv2.findContours(mask2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        contours = np.array(contours, dtype='object')
+        contours = np.array(contours,dtype = 'object')
         c = None
         for i in range(contours.shape[0]):
             if i == 0:
@@ -511,20 +540,20 @@ def generate_and_save_roi(mask,well_path,mask_name):
         contours = c
 
     if mask_name == "outline_lat":
-        roi_path = os.path.join(well_path, "fishoutline_lateral.roi")
+        roi_path = os.path.join(str(well_path), "fishoutline_lateral.roi")
     elif mask_name == "heart_lat":
-        roi_path = os.path.join(well_path, "heart_lateral.roi")
+        roi_path = os.path.join(str(well_path), "heart_lateral.roi")
     elif mask_name == "yolk_lat":
-        roi_path = os.path.join(well_path, "yolk_lateral.roi")
+        roi_path = os.path.join(str(well_path), "yolk_lateral.roi")
     elif mask_name == "ov_lat":
-        roi_path = os.path.join(well_path, "ov_lateral.roi")
+        roi_path = os.path.join(str(well_path), "ov_lateral.roi")
     elif mask_name == "eyes_dor": # Split the eyes mask between up and down eye
         # Split masks
         up_eye_mask, down_eye_mask = split_eye_masks(mask2)
 
         # Extract contours
         roi_up, _ = cv2.findContours(up_eye_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        roi_up = np.array(roi_up, dtype='object')
+        roi_up = np.array(roi_up,dtype = 'object')
         c = None
         for i in range(roi_up.shape[0]):
             if i == 0:
@@ -539,13 +568,13 @@ def generate_and_save_roi(mask,well_path,mask_name):
         if roi_up is not None:
             roi= ImagejRoi.frompoints(np.squeeze(roi_up,axis = 1))
             roi.roitype = ROI_TYPE.POLYGON
-            roi_path = os.path.join(well_path, "eye_up_dorsal.roi")
+            roi_path = os.path.join(str(well_path), "eye_up_dorsal.roi")
             roi.tofile(roi_path) # Save roi to file
         else:
             print("error in mask:",mask_name)
 
         roi_down, _ = cv2.findContours(down_eye_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        roi_down = np.array(roi_down, dtype='object')
+        roi_down = np.array(roi_down,dtype = 'object')
         c = None
         for i in range(roi_down.shape[0]):
             if i == 0:
@@ -560,15 +589,15 @@ def generate_and_save_roi(mask,well_path,mask_name):
         if roi_up is not None:
             roi= ImagejRoi.frompoints(np.squeeze(roi_down,axis = 1))
             roi.roitype = ROI_TYPE.POLYGON
-            roi_path = os.path.join(well_path, "eye_down_dorsal.roi")
+            roi_path = os.path.join(str(well_path), "eye_down_dorsal.roi")
             roi.tofile(roi_path) # Save roi to file
         else:
             print("error in mask:",mask_name)
         return None
     elif mask_name == "outline_dor":
-        roi_path = os.path.join(well_path, "fishoutline_dorsal.roi")
+        roi_path = os.path.join(str(well_path), "fishoutline_dorsal.roi")
     else:
-        roi_path = os.path.join(well_path, "bad_mask_name.roi")
+        roi_path = os.path.join(str(well_path), "bad_mask_name.roi")
         print("Incorrect mask_name, saving to", roi_path)
     if contours is not None:
         roi= ImagejRoi.frompoints(np.squeeze(contours,axis = 1))
@@ -577,6 +606,16 @@ def generate_and_save_roi(mask,well_path,mask_name):
     else:
         print("error in mask:",mask_name)
 
+'''
+Returns a dictionary of the predictions for a batch.
+
+Input:
+    images: List of input images for the medel
+    image_names: List of names of the images belonging to the batch
+    feno_names: List of phenotypes predicted by the network
+    model: Torch model of the boolean phenotypes
+    device: Torch device used to run the model
+'''
 def predict_terato_bools_deep(images,image_names,feno_names,model,device):
     fenos = {im:{f:None for f in feno_names} for im in image_names}
     input = torch.cat([i.unsqueeze(0) for i in images], dim=0).to(device)
@@ -588,23 +627,37 @@ def predict_terato_bools_deep(images,image_names,feno_names,model,device):
                 fenos[im][feno] = float(out[i][j])
     return fenos
 
+'''
+Returns the area of a mask
+'''
 def area(im):
     return np.sum(im)
 
+'''
+Returns the horizontal length of a mask
+'''
 def length(im):
     img = np.array(im*255,dtype=np.uint8)
     x, y, width, height = cv2.boundingRect(img)
     return width
+
 '''
 TODO:
 ENVIAR MENSAJE CON EL PROGURESO A LA GUI PARA HACER UNA BARRA?
+
+Main pipeline of a plate processing. Makes the predictions for both masks and
+boolean phenotypes. Saves the rois of the masks in the correspoding well folders.
+Writes the predctionsof the boolean phenotypes in the XML. Generates a csv file
+with the statistics of every fish (when did it die, dose, compound, areas and lengths,...)
 '''
 def generate_and_save_predictions(plate_path,batch_size,model_path_seg,model_path_bools,mask_names,feno_names,device,path_dataframe = None):
     time_predict_masks, time_generate_rois, time_predict_bools, time_area, time_length = 0, 0, 0, 0, 0
 
+    plate_path = Path(plate_path)
+
     # DataFrame creation for plots
     if path_dataframe is None:
-        path_dataframe = plate_path + '/stats.csv'
+        path_dataframe = plate_path / 'stats.csv'
     column_names_area = ['area_out_lat','area_heart', 'area_yolk', 'area_ov', 'area_eyes', 'area_out_dor']
     column_names_length = ['length_out_lat','length_heart','length_yolk','length_ov','length_eyes','length_out_dor']
     df = pd.DataFrame(columns=['plate', 'well_folder', 'compound', 'dose', 'dead120', 'dead24'])
@@ -612,9 +665,9 @@ def generate_and_save_predictions(plate_path,batch_size,model_path_seg,model_pat
     trans = transforms.Compose([transforms.ToTensor()])
     model_seg = torch.load(model_path_seg, map_location=device).eval()
     model_bools = torch.load(model_path_bools, map_location=device).eval()
-    plate_name = plate_path.split('/')[-1]
-    xml_path = plate_path + "/" + plate_name + ".xml"
-    tree = ET.parse(xml_path)
+    plate_name = plate_path.parts[-1]
+    xml_path = plate_path /  (plate_name + ".xml")
+    tree = ET.parse(str(xml_path))
     plate = tree.getroot()
     data_frame = {columns_name:[] for columns_name in column_names_area + column_names_length + feno_names}
     data_frame['well_folder'] = []
@@ -629,7 +682,7 @@ def generate_and_save_predictions(plate_path,batch_size,model_path_seg,model_pat
     well_paths = []
 
     i = 0
-    listdir = os.listdir(plate_path)
+    listdir = os.listdir(str(plate_path))
     well_name_example = listdir[i]
     while well_name_example[:4] != 'Well':
         i += 1
@@ -651,14 +704,14 @@ def generate_and_save_predictions(plate_path,batch_size,model_path_seg,model_pat
         # If show2user is 0 we can skip the well
         if int(well.attrib['show2user']):
             batch += 2
-            well_path = plate_path + "/" + well_name
+            well_path = plate_path / well_name
 
             # Images' paths
-            dorsal_img_path = well_path + "/" + well.attrib['dorsal_image']
-            lateral_img_path = well_path + "/" + well.attrib['lateral_image']
+            dorsal_img_path = well_path / well.attrib['dorsal_image']
+            lateral_img_path = well_path / well.attrib['lateral_image']
             image_name = plate_name + "_" + well_name
-            dorsal_image = load_image(dorsal_img_path,'rgb',trans)
-            lateral_image = load_image(lateral_img_path,'rgb',trans)
+            dorsal_image = load_image(str(dorsal_img_path),'rgb',trans)
+            lateral_image = load_image(str(lateral_img_path),'rgb',trans)
             types = types + ['dor','lat']
             images = images + [dorsal_image,lateral_image]
             #IMPORTANTE EL "255"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -666,7 +719,7 @@ def generate_and_save_predictions(plate_path,batch_size,model_path_seg,model_pat
             image_names = image_names + [image_name,image_name]
             image_names_bool.append(image_name)
             well_list.append(well)
-            well_paths.append(well_path)
+            well_paths.append(str(well_path))
 
             if batch == batch_size or well_id == n_wells-1:
                 ini = time.time()
@@ -681,7 +734,7 @@ def generate_and_save_predictions(plate_path,batch_size,model_path_seg,model_pat
                         data_frame[column_names_length[j]].append(length(dict[fish_name][mask]))
                         time_length += time.time() - ini
                         ini = time.time()
-                        generate_and_save_roi(dict[fish_name][mask],well_paths[i],mask)
+                        generate_and_save_roi(dict[fish_name][mask],str(well_paths[i]),mask)
                         time_generate_rois += time.time() - ini
                 ini = time.time()
                 fenos = predict_terato_bools_deep(images_bool,image_names_bool,feno_names,model_bools,device)
@@ -723,7 +776,7 @@ def generate_and_save_predictions(plate_path,batch_size,model_path_seg,model_pat
     Update XML
     '''
     tree = ET.ElementTree(plate)
-    with open(xml_path, "wb") as fh:
+    with open(str(xml_path), "wb") as fh:
         tree.write(fh)
 
     print('Time predict masks', time_predict_masks)

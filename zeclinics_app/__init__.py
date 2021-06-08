@@ -56,8 +56,8 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'xml'}
 ALLOWED_EXTENSIONS_CARDIO = {'lif'}
 
 app = Flask(__name__, static_folder=str(static_path), template_folder = str(templates_path))
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['UPLOAD_FOLDER_CARDIO'] = UPLOAD_FOLDER_CARDIO
+app.config['UPLOAD_FOLDER'] = Path(UPLOAD_FOLDER)
+app.config['UPLOAD_FOLDER_CARDIO'] = Path(UPLOAD_FOLDER_CARDIO)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 ui = FlaskUI(app, width=3000, height=3000, maximized=True,start_server = "flask")
@@ -102,8 +102,8 @@ def upload_cardio():
             if file and allowed_file_cardio(file.filename):
                 path_name = Path(file.filename)
                 path_name = os.path.join('./', path_name)
-                out = path_name.split('/');
-                lif = out[len(out)- 1];
+                out = path_name.parts
+                lif = out[-1]
                 lif = lif.split('.')[0]
                 lif_path = os.path.join(app.config['UPLOAD_FOLDER_CARDIO'], lif)
                 if not Path(lif_path).exists():
@@ -111,7 +111,7 @@ def upload_cardio():
                 _,_ , a , v, metrics,_ = process_video(path_name,base_it=base_it, update_it=update_it, skip=skip_it, debug=True, gen_video=True, video_name=str(static_path / 'videos')+'/'+lif+'/video.webm', p_out_shape="original", fps = fps)
                 path = os.path.join('./', lif_path)
                 ecg(a,v, os.path.join(path,'ecg.html'), save=True)
-                _ = save_csv(metrics, path+'/')
+                _ = save_csv(metrics, path)
                 return render_template('cardio.html', dict=metrics, lif = lif)
     processed = os.listdir(app.config['UPLOAD_FOLDER_CARDIO'])
     return render_template('upload_cardio.html', process=processed)
@@ -133,8 +133,9 @@ def allowed_file_cardio(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS_CARDIO
 
 def dict_from_xml(plate_path, plate_name):
+    plate_path = Path(plate_path)
     i = 0
-    listdir = os.listdir(plate_path)
+    listdir = os.listdir(str(plate_path))
     well_name_example = listdir[i]
     while well_name_example[:4] != 'Well':
         i += 1
@@ -142,8 +143,8 @@ def dict_from_xml(plate_path, plate_name):
 
     dic_images = {}
     dic_feno = {}
-    xml_path = str(plate_path) + "/" + str(plate_name) + ".xml"
-    tree = ET.parse(xml_path)
+    xml_path = plate_path / (plate_name + ".xml")
+    tree = ET.parse(str(xml_path))
     plate = tree.getroot()
     for well in tqdm(plate):
         if 'well_folder' in well.attrib:
@@ -186,9 +187,9 @@ def create_mask(roi_paths, mask_name, well):
     cv2.fillPoly( img , [pts2], (255))
 
 #    img = Tox.obtain_mask(img,roi)
-    cv2.imwrite(str(static_path / 'temp/terato')+'/'+well + mask_name +'.png', img)
+    cv2.imwrite(str(static_path /'temp'/'terato'/'well'/mask_name/'.png'), img)
 
-    img = cv2.imread(str(static_path / 'temp/terato')+'/'+well + mask_name +'.png')
+    img = cv2.imread(str(static_path /'temp'/'terato'/'well'/mask_name/'.png'))
     img = (255-img)
 
     # convert to graky
@@ -220,17 +221,17 @@ def create_mask(roi_paths, mask_name, well):
     result[:, :, 3] = mask
 
     # save resulting masked image
-    cv2.imwrite(str(static_path / 'temp/terato')+'/'+well + mask_name+'.png', result)
+    cv2.imwrite(str(static_path /'temp'/'terato'/'well'/mask_name/'.png'), result)
 
 def generate_plots(plate_path, plate):
     print(plate_path,plate)
     df = pd.read_csv(os.path.join(plate_path, 'stats.csv'))
     pca(df)
-    if not Path(str(static_path / 'temp/plots')+'/'+plate).exists():
-        os.mkdir(str(static_path / 'temp/plots')+'/'+plate)
-    Mca(df,str(static_path / 'temp/plots')+'/'+plate+'/mca.png')
-    doseperresponse(df, str(static_path / 'temp/plots')+'/'+plate+'/')
-    os.rename('biplot_2d.png', str(static_path / 'temp/plots')+'/'+plate+'/biplot_2d.png')
+    if not (static_path / 'temp' / 'plots' / plate).exists():
+        os.mkdir(str(static_path / 'temp' / 'plots' / plate))
+    Mca(df,str(static_path / 'temp' / 'plots' / plate / 'mca.png'))
+    doseperresponse(df, str(static_path / 'temp' / 'plots' / plate))
+    os.rename('biplot_2d.png', str(static_path / 'temp' / 'plots' / plate / 'biplot_2d.png'))
 
 
 
@@ -279,9 +280,8 @@ def upload_file():
                     if line.strip() == str(plate_name):
                         break
                 processing = False
-        dirs = [name for name in os.listdir(
-            dirname) if os.path.isdir(os.path.join(dirname, name))]
-        dirs2 = [dirname + "/" + sub for sub in dirs]
+        dirs = [name for name in os.listdir(dirname) if os.path.isdir(os.path.join(dirname, name))]
+        dirs2 = [str(Path(dirname) / sub) for sub in dirs]
         dirs2.sort()
         images, phenotypes =dict_from_xml(dirname, plate_name)
         return render_template('terato2.html', plates=dirs2, done=True, data=phenotypes, images=images)
@@ -298,10 +298,10 @@ def terato():
         dirname = os.path.join(app.config['UPLOAD_FOLDER'], plate_name)
         dirs = [name for name in os.listdir(
             dirname) if os.path.isdir(os.path.join(dirname, name))]
-        dirs2 = [dirname + "/" + sub for sub in dirs]
+        dirs2 = [str(Path(dirname) / sub) for sub in dirs]
         dirs2.sort()
         images, phenotypes =dict_from_xml(dirname, plate_name)
-        generate_plots(dirname, plate_name)
+        generate_plots(str(dirname), plate_name)
         return render_template('terato2.html', plates=dirs2, plate_name=plate_name, data=phenotypes, images=images)
     else:
         print("fail")
@@ -317,17 +317,17 @@ def csv_to_dict(csv):
 @app.route('/download', methods=['GET', 'POST'])
 def download():
     plate = request.args.get('plate', None)
-    shutil.make_archive(app.config['UPLOAD_FOLDER'] +'/'+ plate, 'zip', os.path.join(app.config['UPLOAD_FOLDER'], plate))
-    zip_file = send_from_directory(directory=app.config['UPLOAD_FOLDER'], filename=plate+'.zip', as_attachment=True)
-    os.remove(app.config['UPLOAD_FOLDER'] +'/'+ plate + '.zip')
+    shutil.make_archive(app.config['UPLOAD_FOLDER'] / plate, 'zip', os.path.join(app.config['UPLOAD_FOLDER'], plate))
+    zip_file = send_from_directory(directory=app.config['UPLOAD_FOLDER'], path=plate+'.zip', as_attachment=True)
+    os.remove(str(app.config['UPLOAD_FOLDER'] / plate) + '.zip')
     return zip_file
 
 @app.route('/download_cardio', methods=['GET', 'POST'])
 def download_cardio():
     lif = request.args.get('lif', None)
-    shutil.make_archive(app.config['UPLOAD_FOLDER_CARDIO'] +'/'+lif, 'zip', os.path.join(app.config['UPLOAD_FOLDER_CARDIO'], lif))
-    zip_file = send_from_directory(directory=app.config['UPLOAD_FOLDER_CARDIO'], filename=lif+'.zip', as_attachment=True)
-    os.remove(app.config['UPLOAD_FOLDER_CARDIO'] +'/'+ lif + '.zip')
+    shutil.make_archive(app.config['UPLOAD_FOLDER_CARDIO'] / lif, 'zip', os.path.join(app.config['UPLOAD_FOLDER_CARDIO'], lif))
+    zip_file = send_from_directory(directory=app.config['UPLOAD_FOLDER_CARDIO'], path=lif+'.zip', as_attachment=True)
+    os.remove(str(app.config['UPLOAD_FOLDER_CARDIO'] / (lif + '.zip')))
     return zip_file
 
 @app.route('/cardio', methods=['GET', 'POST'])
@@ -343,7 +343,7 @@ def cardio():
 def graphics():
     plate = request.args.get('plate', None)
     plot=None
-    for file in os.listdir(str(static_path / 'temp/plots') +'/'+ plate):
+    for file in os.listdir(str(static_path / 'temp' / 'plots' / plate)):
         if file[-4:]=='html' and file != '3,4-DCAfeno.html':
             plot=file
     return render_template('graphics.html', plate=plate, plot=plot)
@@ -351,8 +351,8 @@ def graphics():
 @app.route('/getmask/', methods=['GET', 'POST'])
 def getmask():
     if request.method == "POST":
-        data = json.loads(request.data)
-        out = data.split('/');
+        data = Path(json.loads(request.data))
+        out = data.parts
         well = out[-1];
         masks = ["eye_up_dorsal","eye_down_dorsal","ov_lateral","yolk_lateral","fishoutline_dorsal","fishoutline_lateral","heart_lateral"]
         for mask in masks:
@@ -362,7 +362,7 @@ def getmask():
             except:
                 print('fail')
             '''
-            create_mask(data+'/'+mask+'.roi',mask, well)
+            create_mask(str(data / (mask+'.roi')),mask, well)
     return 'Created mask'
 
 
@@ -370,7 +370,7 @@ def getmask():
 def deletetemp():
     if request.method == "POST":
         print('prueba')
-        files = glob.glob(str(static_path / 'temp/terato/*'))
+        files = glob.glob(str(static_path /'temp'/'terato'/'*'))
         for f in files:
             print(f)
             os.remove(f)
@@ -382,10 +382,10 @@ def deleteplate():
     if request.method == "POST":
         data = json.loads(request.data)
         try:
-            shutil.rmtree(UPLOAD_FOLDER + '/' + data)
+            shutil.rmtree(UPLOAD_FOLDER / data)
             print('hola2')
         except:
-            os.remove(UPLOAD_FOLDER + '/' + data)
+            os.remove(UPLOAD_FOLDER / data)
             print('hola1')
     return 'hola'
 
@@ -394,10 +394,10 @@ def deletelif():
     if request.method == "POST":
         data = json.loads(request.data)
         try:
-            shutil.rmtree(UPLOAD_FOLDER_CARDIO + '/' + data)
+            shutil.rmtree(UPLOAD_FOLDER_CARDIO / data)
             print('hola2')
         except:
-            os.remove(UPLOAD_FOLDER_CARDIO + '/' + data)
+            os.remove(UPLOAD_FOLDER_CARDIO / data)
             print('hola1')
     return 'hola'
 

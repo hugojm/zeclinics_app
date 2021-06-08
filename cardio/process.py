@@ -6,6 +6,7 @@ import sys
 import os
 import numpy as np
 from os import listdir
+from pathlib import Path
 from os.path import isfile, join
 from cardio.preprocess import lifpreprocess
 from cardio.active_contours import ac_masks
@@ -167,9 +168,9 @@ def ecg(atrium, ventricle,path, save=False):
 def save_csv(dict,path,debug=False):
     csv_columns = ['video','fps','active_contours','bad_atrium_signal','bad_ventricle_signal','a_beating','v_beating','a_bpm','v_bpm','longest_a','longest_v','shortest_a','shortest_v','ef_a','ef_v','qt_mean','arrhythmia_1','arrhythmia_2']
     name=dict['video']
-    csv_file = path + ('output' if name =='unknown' else name)+".csv"
+    csv_file = Path(path) / (('output' if name =='unknown' else name)+".csv")
     try:
-        with open(csv_file, 'w') as csvfile:
+        with open(str(csv_file), 'w') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
             writer.writeheader()
             for key in csv_columns:

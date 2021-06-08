@@ -24,7 +24,12 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script>
     $(function(){
-      $("#plot").load("{{url_for('static',filename='temp'+sep+'plots'+sep+plate+sep+plot)}}");
+      var sep = {{sep|tojson}}
+      var plate = {{plate|tojson}}
+      var plot = {{plot|tojson}}
+      console.log('temp'+sep+'plots'+sep+plate+sep+plot)
+      console.log("{{url_for('static',filename='temp'+sep+'plots'+sep+plate+sep+plot)}}")
+      $("#plot").load('static' +sep+ 'temp'+sep+'plots'+sep+plate+sep+plot);
     });
     </script>
   </body>

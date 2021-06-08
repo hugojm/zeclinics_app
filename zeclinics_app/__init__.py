@@ -349,7 +349,7 @@ def graphics():
     plate = request.args.get('plate', None)
     plot=None
     for file in os.listdir(str(static_path / 'temp' / 'plots' / plate)):
-        if file[-4:]=='html' and file != '3,4-DCAfeno.html':
+        if file[-4:]=='html' and file != 'DCAfeno.html':
             plot=file
     return render_template('graphics.html', plate=plate, plot=plot,sep=os.sep)
 

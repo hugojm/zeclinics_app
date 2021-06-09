@@ -422,7 +422,7 @@ def dated_url_for(endpoint, **values):
     return url_for(endpoint, **values)
 
 def start():
-    app.run()
+    ui.run()
 
 if __name__ == '__main__':
     start()

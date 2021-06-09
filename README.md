@@ -21,8 +21,7 @@ rm -rf zeclinics_app
 Now, we have the library installed, so every time we want to deploy the app we have to run in the terminal the following command:
 
 ```
-zeclinicsapp
-open 127.0.0.1:5000 in any browser
+open Zeclinics icon in Desktop
 ```
 
 ## Windows
@@ -32,7 +31,7 @@ Once we have download the code we have to enter to the directory and install the
 ```
 cd zeclinics_app
 pip3 install --upgrade --upgrade-strategy eager --user .
-python3 create_shortcut.py
+create_shortcut.py
 cd ..
 rmdir /s zeclinics_app
 ```
@@ -40,7 +39,5 @@ rmdir /s zeclinics_app
 Check the directory where the package has been installed and run the file:
 
 ```
-pip3 show zeclinics_app
-zeclinics.exe
-open 127.0.0.1:5000 in any browser
+open Zeclinics icon in Desktop
 ```

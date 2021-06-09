@@ -6,7 +6,7 @@ setup(
     packages=find_packages(),
     entry_points={
         "console_scripts": [
-            "zeclinicsapp = zeclinics_app:start"
+            "zeclinicsapp = zeclinics_app.app:start"
         ]
     },
     install_requires=[

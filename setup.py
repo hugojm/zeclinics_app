@@ -34,7 +34,8 @@ setup(
         "bioinfokit",
         "prince",
         "scikit-learn",
-        "mpld3"
+        "mpld3",
+        "pyshortcuts"
     ],
     package_data={
         'zeclinics_app': ['templates/*','static/css/*', 'static/images/*', 'static/img/*', 'static/js/*', 'static/videos/*', 'static/weight/*'],

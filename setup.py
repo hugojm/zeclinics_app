@@ -35,7 +35,8 @@ setup(
         "prince",
         "scikit-learn",
         "mpld3",
-        "pyshortcuts"
+        "pyshortcuts",
+        "gdown"
     ],
     package_data={
         'zeclinics_app': ['templates/*','static/css/*', 'static/images/*', 'static/img/*', 'static/js/*', 'static/videos/*', 'static/weight/*'],

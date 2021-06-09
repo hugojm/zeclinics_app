@@ -27,8 +27,6 @@ setup(
         "heartpy==1.2.6",
         "flaskwebgui",
         "tqdm",
-        "importlib_resources",
-        "importlib",
         "readlif",
         "altair",
         "bioinfokit",

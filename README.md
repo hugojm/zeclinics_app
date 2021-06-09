@@ -38,5 +38,7 @@ rmdir /s zeclinics_app
 Check the directory where the package has been installed and run the file:
 
 ```
+pip3 show zeclinics_app
 zeclinics.exe
+open 127.0.0.1:5000 in any browser
 ```

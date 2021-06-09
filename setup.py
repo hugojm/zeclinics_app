@@ -19,7 +19,7 @@ setup(
         "scikit-image",
         "opencv-python",
         "imageio",
-        "scipy<=1.4.1",
+        "scipy==1.6.3",
         "torchvision",
         "matplotlib<=3.1.2",
         "numpy",

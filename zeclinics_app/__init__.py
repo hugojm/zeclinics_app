@@ -40,14 +40,14 @@ print(root_package)
 static_path = root_package / 'static'
 templates_path = root_package / 'templates'
 
-if not os.path.isdir(str(static_path / 'videos')):
+if not (static_path / 'videos').exists():
     os.makedirs(str(static_path / 'videos'))
-if not os.path.isdir(str(static_path / 'temp')):
+if not (static_path / 'temp').exists():
     os.makedirs(str(static_path / 'temp'))
-if not os.path.isdir(str(static_path / 'temp/terato')):
-    os.makedirs(str(static_path / 'temp/terato'))
-if not os.path.isdir(str(static_path / 'temp/plots')):
-    os.makedirs(str(static_path / 'temp/plots'))
+if not (static_path / 'temp' / 'terato').exists():
+    os.makedirs(str(static_path / 'temp' / 'terato'))
+if not (static_path / 'temp' / 'plots').exists():
+    os.makedirs(str(static_path / 'temp' / 'plots'))
 
 UPLOAD_FOLDER = str(static_path/'images')
 UPLOAD_FOLDER_CARDIO = str(static_path/'videos')

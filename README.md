@@ -13,7 +13,7 @@ Once we have download the code we have to enter to the directory and install the
 
 ```
 cd zeclinics_app
-pip install --upgrade --upgrade-strategy eager --user .
+pip3 install --upgrade --upgrade-strategy eager --user .
 cd ..
 rm -rf zeclinics_app
 ```
@@ -30,7 +30,7 @@ Once we have download the code we have to enter to the directory and install the
 
 ```
 cd zeclinics_app
-pip install --upgrade --upgrade-strategy eager --user .
+pip3 install --upgrade --upgrade-strategy eager --user .
 cd ..
 rmdir /s zeclinics_app
 ```

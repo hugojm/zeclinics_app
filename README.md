@@ -7,7 +7,7 @@ git clone https://github.com/hugojm/zeclinics_app.git
 
 or click on code and download zip.
 
-## Linux
+## Linux and Mac OS 
 
 Once we have download the code we have to enter to the directory and install the dependences
 
@@ -15,7 +15,7 @@ Once we have download the code we have to enter to the directory and install the
 cd zeclinics_app
 python3 get_models.py
 pip3 install --upgrade --upgrade-strategy eager --user .
-python3 create_shortcut.py
+python3 create_shortcut.py 
 cd ..
 rm -rf zeclinics_app
 ```

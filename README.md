@@ -13,6 +13,7 @@ Once we have download the code we have to enter to the directory and install the
 
 ```
 cd zeclinics_app
+pip3 install gdown
 python3 get_models.py
 pip3 install --upgrade --upgrade-strategy eager --user .
 python3 create_shortcut.py
@@ -31,6 +32,7 @@ Once we have download the code we have to enter to the directory and install the
 
 ```
 cd zeclinics_app
+pip3 install gdown
 get_models.py
 pip3 install --upgrade --upgrade-strategy eager --user .
 create_shortcut.py

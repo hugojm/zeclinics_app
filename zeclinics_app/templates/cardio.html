@@ -4,18 +4,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename= 'css/style.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 
   </head>
   <body class="body_cardio">
     <div class="home">
       <a href="{{ url_for('home') }}"><img class="but_home" src="{{url_for('static',filename='img/home_but.png')}}"></a>
     </div>
+
+      <div class="box2">
+        <select id="comp_select" class="btn btn-outline-dark" onchange="select_lif()">
+          <option value="{{lif}}">{{lif}}</option>
+          {% for p in processed %}
+          <option value="{{ p }}">{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
     <a href="{{ url_for('download_cardio', lif=lif) }}"><img class="but_download2" src="{{url_for('static',filename='img/but_download.png')}}">
     </a>
     <div class="graphic1" id='plot' style="display:none;">
     </div>
     <div class="video" id='video'>
-      <video width="540" height="620" controls>
+      <video width="450" height="520" controls>
         <source src="{{ url_for('static', filename='videos/'+ lif +'/video.webm')}}" type="video/webm" codecs='vp8.0, vorbis'>
       </video>
     </div>
@@ -55,11 +66,34 @@
           }
         }
 
+        $().ready(function(){
+            //jQuery function
+            sendlif = function( lif )
+            {
+              $.ajax({
+                type : 'POST',
+                dataType: 'json',
+                url : "{{url_for('cardio')}}",
+                contentType: 'application/json;charset=UTF-8',
+                data: JSON.stringify(lif),
+                async : false
+              });
+            }
+        })
+        var sendlif;
+
+        function select_lif(){
+          console.log(document.getElementById("comp_select").value)
+            sendlif(document.getElementById("comp_select").value)
+
+        }
+
     </script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script >
     $(function(){
       $("#plot").load("{{ url_for('static', filename='videos/'+ lif +'/ecg.html')}}");
     });
+
     </script>
   </body>

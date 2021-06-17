@@ -28,7 +28,7 @@ from flaskwebgui import FlaskUI  # import FlaskUI
 import xml.etree.ElementTree as ET
 from tqdm import tqdm
 import glob
-from terato.exploratory_analysis import pca, Mca, doseperresponse
+from terato.exploratory_analysis import doseresponse, plots, Mca
 import pandas as pd
 import shutil
 
@@ -92,6 +92,7 @@ def home():
 @app.route('/upload_cardio.html', methods=['GET', 'POST'])
 def upload_cardio():
     print('You in cardio')
+    processed = os.listdir(app.config['UPLOAD_FOLDER_CARDIO'])
     if request.method == "POST":
         files = request.files.getlist("file[]")
         fps = int(request.form['fps'])
@@ -100,7 +101,6 @@ def upload_cardio():
         skip_it = int(request.form['skip_it'])
         for file in files:
             if file and allowed_file_cardio(file.filename):
-
                 path_name = file.filename
                 path_name = Path(path_name)
                 out = path_name.parts
@@ -115,8 +115,7 @@ def upload_cardio():
                 ecg(a,v, os.path.join(str(lif_path),'ecg.html'), save=True)
                 _ = save_csv(metrics, str(lif_path))
                 os.remove(os.path.join(app.config['UPLOAD_FOLDER_CARDIO'], out[-1]))
-                return render_template('cardio.html', dict=metrics, lif = lif)
-    processed = os.listdir(app.config['UPLOAD_FOLDER_CARDIO'])
+        return render_template('cardio.html', dict=metrics, lif = lif, processed = processed)
     return render_template('upload_cardio.html', process=processed)
 
 
@@ -229,14 +228,12 @@ def create_mask(roi_paths, mask_name, well):
 def generate_plots(plate_path, plate):
     print(plate_path,plate)
     df = pd.read_csv(os.path.join(plate_path, 'stats.csv'))
-    pca(df)
+
     if not (static_path / 'temp' / 'plots' / plate).exists():
         os.mkdir(str(static_path / 'temp' / 'plots' / plate))
+    plots(df,str(static_path / 'temp' / 'plots' / plate))
     Mca(df,str(static_path / 'temp' / 'plots' / plate / 'mca.png'))
-    doseperresponse(df, str(static_path / 'temp' / 'plots' / plate))
-    if (static_path / 'temp' / 'plots' / plate / 'biplot_2d.png').exists():
-        os.remove(str(static_path / 'temp' / 'plots' / plate / 'biplot_2d.png'))
-    os.rename('biplot_2d.png', str(static_path / 'temp' / 'plots' / plate / 'biplot_2d.png'))
+    doseresponse(df, str(static_path / 'temp' / 'plots' / plate))
 
 
 
@@ -289,6 +286,7 @@ def upload_file():
         dirs2 = [str(Path(dirname) / sub) for sub in dirs]
         dirs2.sort()
         images, phenotypes =dict_from_xml(dirname, str(plate_name))
+        generate_plots(str(dirname), plate_name)
         return render_template('terato2.html', plates=dirs2, done=True, data=phenotypes, images=images,sep=os.sep)
     if not Path(app.config['UPLOAD_FOLDER']).exists():
         os.mkdir(app.config['UPLOAD_FOLDER'])
@@ -306,7 +304,6 @@ def terato():
         dirs2 = [str(Path(dirname) / sub) for sub in dirs]
         dirs2.sort()
         images, phenotypes =dict_from_xml(dirname, plate_name)
-        generate_plots(str(dirname), plate_name)
         return render_template('terato2.html', plates=dirs2, plate_name=plate_name, data=phenotypes, images=images, sep = os.sep)
     else:
         print("fail")
@@ -338,20 +335,31 @@ def download_cardio():
 @app.route('/cardio', methods=['GET', 'POST'])
 def cardio():
     if request.method == "POST":
-        lif_name = request.form['submit_button']
+        processed = os.listdir(app.config['UPLOAD_FOLDER_CARDIO'])
+        try:
+            lif_name = request.form['submit_button']
+            print('hola1')
+        except:
+            lif_name = json.loads(request.data)
+            print('hola2')
         lif_path = os.path.join(app.config['UPLOAD_FOLDER_CARDIO'], lif_name)
         metrics = csv_to_dict(os.path.join(lif_path, lif_name+'.csv'))
-        return render_template('cardio.html', dict=metrics, lif = lif_name)
+        processed.remove(lif_name)
+        print(metrics)
+        return render_template('cardio.html', dict=metrics, lif = lif_name, processed = processed)
     return render_template('cardio.html', dict={})
+
+
 
 @app.route('/graphics')
 def graphics():
     plate = request.args.get('plate', None)
     plot=None
-    for file in os.listdir(str(static_path / 'temp' / 'plots' / plate)):
-        if file[-4:]=='html' and file != 'DCAfeno.html':
-            plot=file
-    return render_template('graphics.html', plate=plate, plot=plot,sep=os.sep)
+    phenos = ['bodycurvature', 'yolkedema', 'necrosis',
+          'tailbending', 'craniofacialedema', 'finabsence', 'scoliosis',
+          'snoutjawdefects']
+    feno = plate.split('_')[1]
+    return render_template('graphics.html', phenos=phenos, plate=plate,sep=os.sep, feno=feno)
 
 @app.route('/getmask/', methods=['GET', 'POST'])
 def getmask():

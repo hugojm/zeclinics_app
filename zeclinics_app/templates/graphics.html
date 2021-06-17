@@ -4,32 +4,38 @@
     <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename= 'css/style.css') }}">
   </head>
   <body class="body_terato">
-    <div class="mca">
-      <h1>MCA</h1>
-      <img src="{{url_for('static',filename='temp'+sep+'plots'+sep+plate+sep+'mca.png')}}">
+    <div class="box3">
+      <select id="comp_select" class="btn btn-outline-dark" onchange="select_pheno()">
+        {% for pheno in phenos %}
+        <option value="{{ pheno }}">{{ pheno }}</option>
+        {% endfor %}
+      </select>
     </div>
-    <div class="pca">
-      <h1>PCA</h1>
-      <img src="{{url_for('static',filename='temp'+sep+'plots'+sep+plate+sep+'biplot_2d.png')}}">
-    </div>
-
-    <div class="feno" id='plot'>
-
-
-    </div>
+    <div class="feno1" id='plot'></div>
+    <div class="feno" id='plot1'></div>
+    <div class="mca" id='mca'></div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-    <script>
-    $(function(){
+    <script type="text/javascript">
       var sep = {{sep|tojson}}
       var plate = {{plate|tojson}}
-      var plot = {{plot|tojson}}
-      console.log('temp'+sep+'plots'+sep+plate+sep+plot)
-      console.log("{{url_for('static',filename='temp'+sep+'plots'+sep+plate+sep+plot)}}")
-      $("#plot").load('static' +sep+ 'temp'+sep+'plots'+sep+plate+sep+plot);
+      document.getElementById("plot").innerHTML += '<img src={{url_for('static',filename= '')}}' + 'temp' +sep+ 'plots' +sep+ plate +sep+ 'bodycurvature'+ 'scatter.png' + ' />';
+      document.getElementById("mca").innerHTML += '<img src={{url_for('static',filename= '')}}' + 'temp' +sep+ 'plots' +sep+ plate +sep+ 'mca.png' + ' />';
+      function select_pheno(){
+        var pheno = document.getElementById("comp_select").value;
+        document.getElementById("plot").innerHTML = ''
+        document.getElementById("plot").innerHTML += '<img src={{url_for('static',filename= '')}}' + 'temp' +sep+ 'plots' +sep+ plate +sep+ pheno+ 'scatter.png' + ' />';
+      }
+    </script>
+    <script >
+    $(function(){
+      $("#plot1").load("{{ url_for('static', filename='temp' + sep+ 'plots'+ sep + plate + sep + feno +'.html')}}");
     });
+
     </script>
   </body>

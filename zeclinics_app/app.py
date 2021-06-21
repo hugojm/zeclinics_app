@@ -35,6 +35,7 @@ import shutil
 f = open('processing.txt', 'w')
 f.close()
 
+global lif_flask
 root_package = Path(os.path.abspath(__file__)).parent
 print(root_package)
 static_path = root_package / 'static'
@@ -59,6 +60,7 @@ app = Flask(__name__, static_folder=str(static_path), template_folder = str(temp
 app.config['UPLOAD_FOLDER'] = Path(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER_CARDIO'] = Path(UPLOAD_FOLDER_CARDIO)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 ui = FlaskUI(app, width=3000, height=3000, maximized=True,start_server = "flask")
 
@@ -285,6 +287,18 @@ def upload_file():
         dirs = [name for name in os.listdir(dirname) if os.path.isdir(os.path.join(dirname, name))]
         dirs2 = [str(Path(dirname) / sub) for sub in dirs]
         dirs2.sort()
+        files = glob.glob(str(static_path /'temp'/'terato'/'*'))
+        for f in files:
+            print(f)
+            os.remove(f)
+        for path in dirs2:
+            path = Path(path)
+            out = path.parts
+            well = out[-1];
+            masks = ["eye_up_dorsal","eye_down_dorsal","ov_lateral","yolk_lateral","fishoutline_dorsal","fishoutline_lateral","heart_lateral"]
+            for mask in masks:
+                create_mask(str(Path(path)/ (mask+'.roi')),mask, well)
+
         images, phenotypes =dict_from_xml(dirname, str(plate_name))
         generate_plots(str(dirname), plate_name)
         return render_template('terato2.html', plates=dirs2, done=True, data=phenotypes, images=images,sep=os.sep)
@@ -303,6 +317,18 @@ def terato():
             dirname) if os.path.isdir(os.path.join(dirname, name))]
         dirs2 = [str(Path(dirname) / sub) for sub in dirs]
         dirs2.sort()
+        files = glob.glob(str(static_path /'temp'/'terato'/'*'))
+        for f in files:
+            print(f)
+            os.remove(f)
+        for path in dirs2:
+            path = Path(path)
+            out = path.parts
+            well = out[-1];
+            masks = ["eye_up_dorsal","eye_down_dorsal","ov_lateral","yolk_lateral","fishoutline_dorsal","fishoutline_lateral","heart_lateral"]
+            for mask in masks:
+                create_mask(str(Path(path)/ (mask+'.roi')),mask, well)
+
         images, phenotypes =dict_from_xml(dirname, plate_name)
         return render_template('terato2.html', plates=dirs2, plate_name=plate_name, data=phenotypes, images=images, sep = os.sep)
     else:
@@ -332,22 +358,33 @@ def download_cardio():
     os.remove(str(app.config['UPLOAD_FOLDER_CARDIO'] / (lif + '.zip')))
     return zip_file
 
-@app.route('/cardio', methods=['GET', 'POST'])
+@app.route('/cardio', methods=['GET','POST'])
 def cardio():
+    global lif_flask
+    processed = os.listdir(app.config['UPLOAD_FOLDER_CARDIO'])
     if request.method == "POST":
-        processed = os.listdir(app.config['UPLOAD_FOLDER_CARDIO'])
         try:
-            lif_name = request.form['submit_button']
+            lif_flask = request.form['submit_button']
             print('hola1')
         except:
-            lif_name = json.loads(request.data)
+            lif_flask = json.loads(request.data)
             print('hola2')
+        lif_name = lif_flask
         lif_path = os.path.join(app.config['UPLOAD_FOLDER_CARDIO'], lif_name)
         metrics = csv_to_dict(os.path.join(lif_path, lif_name+'.csv'))
         processed.remove(lif_name)
         print(metrics)
-        return render_template('cardio.html', dict=metrics, lif = lif_name, processed = processed)
-    return render_template('cardio.html', dict={})
+        render_template('cardio.html', dict=metrics, lif = lif_name, processed = processed)
+        return redirect('dummy')
+    lif_name = lif_flask
+    lif_path = os.path.join(app.config['UPLOAD_FOLDER_CARDIO'], lif_name)
+    metrics = csv_to_dict(os.path.join(lif_path, lif_name+'.csv'))
+    processed.remove(lif_name)
+    return render_template('cardio.html', dict=metrics, lif = lif_name, processed = processed)
+
+@app.route('/dummy')
+def dummy():
+    return redirect('cardio')
 
 
 
@@ -361,33 +398,9 @@ def graphics():
     feno = plate.split('_')[1]
     return render_template('graphics.html', phenos=phenos, plate=plate,sep=os.sep, feno=feno)
 
-@app.route('/getmask/', methods=['GET', 'POST'])
-def getmask():
-    if request.method == "POST":
-        data = Path(json.loads(request.data))
-        out = data.parts
-        well = out[-1];
-        masks = ["eye_up_dorsal","eye_down_dorsal","ov_lateral","yolk_lateral","fishoutline_dorsal","fishoutline_lateral","heart_lateral"]
-        for mask in masks:
-            '''
-            try:
-                create_mask(data+'/'+mask+'.roi',mask, well)
-            except:
-                print('fail')
-            '''
-            create_mask(str(data / (mask+'.roi')),mask, well)
-    return 'Created mask'
 
 
-@app.route('/deletetemp/', methods=['GET', 'POST'])
-def deletetemp():
-    if request.method == "POST":
-        print('prueba')
-        files = glob.glob(str(static_path /'temp'/'terato'/'*'))
-        for f in files:
-            print(f)
-            os.remove(f)
-    return 'hola'
+
 
 
 @app.route('/deleteplate/', methods=['GET', 'POST'])

@@ -8,6 +8,9 @@
 
   </head>
   <body class="body_cardio">
+    <div class='title_cardio'>
+        <h1>CARDIO</h1>
+    </div>
     <div class="home">
       <a href="{{ url_for('home') }}"><img class="but_home" src="{{url_for('static',filename='img/home_but.png')}}"></a>
     </div>
@@ -85,7 +88,7 @@
         function select_lif(){
           console.log(document.getElementById("comp_select").value)
             sendlif(document.getElementById("comp_select").value)
-
+            location.reload()
         }
 
     </script>

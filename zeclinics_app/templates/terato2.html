@@ -104,46 +104,7 @@
   </label>
   </div>
   </div>
-  <!-- <label class="container">Body Curvature
-    <input type="checkbox" onclick="phenot(this.checked,'bodycurvature')">
-    <span class="checkmark"></span>
-  </label>
-  <label class="container">Yolk Edema
-    <input type="checkbox" id="yolk_edema" onclick="phenot(this.checked,'yolkedema')">
-    <span class="checkmark"></span>
-  </label>
-  <label class="container">Necrosis
-    <input type="checkbox" onclick="phenot(this.checked,'necrosis')">
-    <span class="checkmark"></span>
-  </label>
-  <label class="container">Tail Bending
-    <input type="checkbox" onclick="phenot(this.checked,'tailbending')">
-    <span class="checkmark"></span>
-  </label>
-  <label class="container">Notochord Defects
-    <input type="checkbox" onclick="phenot(this.checked,'notochorddefects')">
-    <span class="checkmark"></span>
-  </label>
-  <label class="container">Craniofacial Edema
-    <input type="checkbox" onclick="phenot(this.checked,'craniofacialedema')">
-    <span class="checkmark"></span>
-  </label>
-  <label class="container">Fin Absence
-    <input type="checkbox" onclick="phenot(this.checked,'finabsence')">
-    <span class="checkmark"></span>
-  </label>
-  <label class="container">Scoliosis
-    <input type="checkbox" onclick="phenot(this.checked,'scoliosis')">
-    <span class="checkmark"></span>
-  </label>
-  <label class="container">Snout Jaw Defects
-    <input type="checkbox" onclick="phenot(this.checked,'snoutjawdefects')">
-    <span class="checkmark"></span>
-  </label>
-  <label class="container">Otoliths Defects
-    <input type="checkbox" onclick="phenot(this.checked,'otolithsdefects')">
-    <span class="checkmark"></span>
-  </label> -->
+
 
 <div id="mask_menu" style="display:none" >
 <h1>Display masks</h1>
@@ -186,36 +147,17 @@
 </label>
 </div>
 </div>
-<!-- <label class="container">Lateral Outline
-  <input type="checkbox" id="fishoutline_lateral" onclick="calc('fishoutline_lateral')">
-  <span class="checkmark"></span>
-</label>
-<label class="container">Dorsal Outline
-  <input type="checkbox" id="fishoutline_dorsal" onclick="calc('fishoutline_dorsal')">
-  <span class="checkmark"></span>
-</label>
-<label class="container">Eyes
-  <input type="checkbox" id="eyes_dorsal" onclick="calc('eyes_dorsal')">
-  <span class="checkmark"></span>
-</label>
-<label class="container">Heart
-  <input type="checkbox" id="heart_lateral" onclick="calc('heart_lateral')">
-  <span class="checkmark"></span>
-</label>
-<label class="container">Ov
-  <input type="checkbox" id="ov_lateral" onclick="calc('ov_lateral')">
-  <span class="checkmark"></span>
-</label>
-<label class="container">Yolk
-  <input type="checkbox" id="yolk_lateral" onclick="calc('yolk_lateral')">
-  <span class="checkmark"></span>
-</label> -->
+
     </div>
     </div>
           <div class="page" id="page"></div>
           <div class="print" id ="lateral_div"> </div>
           <div class="print1" id ="dorsal_div"> </div>
           <div class="print_plate" id ="plate"> </div>
+          <div class="print_plate2" id ="plate2"> </div>
+          <div class="print_plate2" id ="plate3"> </div>
+          <div class="print_plate2" id ="plate4"> </div>
+          <div class="print_plate2" id ="plate5"> </div>
           <div class="print1" id ="eyes_dorsal_div" style="z-index:10"> </div>
           <div class="print1" id ="eyes2_dorsal_div" style="z-index:10"> </div>
           <div class="print1" id ="fishoutline_dorsal_div" > </div>
@@ -239,7 +181,6 @@
           <link href="https://cdn.anychart.com/releases/v8/css/anychart-ui.min.css" type="text/css" rel="stylesheet">
           <link href="https://cdn.anychart.com/releases/v8/fonts/css/anychart-font.min.css" type="text/css" rel="stylesheet">
     <script type="text/javascript">
-    var temp = '/temp/terato'
     var position = 0;
     const selected_pheno = new Set()
     var pheno = {'bodycurvature':'Body curvature','yolkedema':'Yolk edema','necrosis':'Necrosis','tailbending':'Tail Bending','notochorddefects':'Notochord defects','craniofacialedema':'Craniofacial edema','finabsence':'Fin absence','scoliosis':'Scoliosis','snoutjawdefects':'Snout jaw defects','otolithsdefects':'Otoliths defects'}
@@ -247,14 +188,14 @@
     var data = {{ data|tojson }};
     var images = {{ images|tojson }};
     var sep = {{sep|tojson}};
-    console.log('Holaaaaaaaa')
-    console.log(sep)
+    var temp = 'temp' + sep + 'terato'
+
     {% if plates is defined and plates %}
     var list = {{ plates|tojson }};
     var positions = Math.ceil(list.length / 10);
     {% endif %}
-    print_overview(0);
 
+    print_overview(0)
     function get_position(direction){
       if (direction == 'derecha'){
         if (position < positions - 1){
@@ -277,11 +218,11 @@
         selected_pheno.delete(name);
       }
       print_overview(position)
-    }
+    };
+
 
 // display overview
     function print_overview(position){
-      {% if plates is defined and plates %}
         document.getElementById("boolean_menu").style.display = "block";
         document.getElementById("mask_menu").style.display = "none";
         var overview = document.getElementById("overview");
@@ -306,14 +247,27 @@
           var final = plate.length;
         }
         var div_plate = document.getElementById("plate");
+        var div2 = document.getElementById("plate2");
+        var div3 = document.getElementById("plate3");
+        var div4 = document.getElementById("plate4");
+        var div5 = document.getElementById("plate5");
         div_plate.innerHTML = '';
+        div2.innerHTML = '';
+        div3.innerHTML = '';
+        div4.innerHTML = '';
+        div5.innerHTML = '';
         for (var i = initial; i <= final; i++){
           var div = document.getElementById("plate");
+          var div2 = document.getElementById("plate2");
+          var div3 = document.getElementById("plate3");
+          var div4 = document.getElementById("plate4");
+          var div5 = document.getElementById("plate5");
           var out = plate[i].split(sep);
           var well = out[out.length - 1];
           var plate_name = out[out.length - 2];
           var set_size = selected_pheno.size;
           var sum = 0;
+
           for (let item of selected_pheno){
             if(data[well][item] > 0.5){
               sum = sum + 1;
@@ -328,44 +282,17 @@
             div.innerHTML += '<img src={{url_for('static',filename= '')}}' + 'images' +sep+ plate_name +sep+ well +sep+ images[well][1] + ' id="'+ plate[i] +'" onclick="image(this)"/>';
             div.innerHTML += '<img src={{url_for('static',filename= '')}}' + 'images' +sep+ plate_name +sep+ well +sep+ images[well][0] + ' id="'+ plate[i] +'" onclick="image(this)" />';
           }
-        }
+          div2.innerHTML += '<img src={{url_for('static',filename= '')}}'+ temp + sep + well + 'heart_lateral.png' + ' id="'+ plate[i] +'" onclick="image(this)" style="opacity: 0.5;"'+ '/>';
+          div2.innerHTML += '<img src={{url_for('static',filename= '')}}'+ temp + sep + well + 'fishoutline_dorsal.png' +' id="'+ plate[i] +'" onclick="image(this)" style="opacity: 0.5;"'+ '/>';
+          div3.innerHTML += '<img src={{url_for('static',filename= '')}}'+ temp + sep + well + 'ov_lateral.png' + ' id="'+ plate[i] +'" onclick="image(this)" style="opacity: 0.5;"'+ '/>';
+          div3.innerHTML += '<img src={{url_for('static',filename= '')}}'+ temp + sep + well + 'eye_up_dorsal.png'+ ' id="'+ plate[i] +'" onclick="image(this) style="opacity: 0.5;"'+ '/>';
+          div4.innerHTML += '<img src={{url_for('static',filename= '')}}'+ temp + sep + well + 'yolk_lateral.png' +' id="'+ plate[i] +'" onclick="image(this)"  style="opacity: 0.5;"'+ '/>';
+          div4.innerHTML += '<img src={{url_for('static',filename= '')}}'+ temp + sep + well + 'eye_down_dorsal.png'+ ' id="'+ plate[i] +'" onclick="image(this)" style="opacity: 0.5;"'+ '/>';
+          div5.innerHTML += '<img src={{url_for('static',filename= '')}}'+ temp + sep + well + 'fishoutline_lateral.png' + ' id="'+ plate[i] +'" onclick="image(this)" style="opacity: 0.5;"'+ '/>';
+          div5.innerHTML += '<img src={{url_for('static',filename= '')}}'+ temp + sep + well + 'fishoutline_lateral.png' + ' id="'+ plate[i] +'" onclick="image(this)" style="opacity: 0;"'+ '/>';
 
-      {% endif %}
+        }
     };
-
-
-    var sendmask;
-
-    var deletetemp;
-    $().ready(function(){
-        //jQuery function
-        deletetemp = function()
-        {
-          $.ajax({
-            type : 'POST',
-            url : "{{url_for('deletetemp')}}",
-            async : false
-          });
-        }
-    })
-
-    $().ready(function(){
-        //jQuery function
-        sendmask = function( _msg )
-        {
-          console.log(_msg)
-          $.ajax({
-            type : 'POST',
-            dataType: 'json',
-            url : "{{url_for('getmask')}}",
-            contentType: 'application/json;charset=UTF-8',
-            data : JSON.stringify(_msg),
-            async : false
-          });
-        }
-    })
-
-
 
     function select_well(){
       document.getElementById("boolean_menu").style.display = "none";
@@ -373,13 +300,12 @@
       var path = document.getElementById("comp_select").value;
       const myNode = document.getElementById("bool");
       myNode.innerHTML = '';
-      deletetemp();
+      //deletetemp();
       if (path == "default"){
 
         print_overview(position);
 
       }else{
-        sendmask(path);
         var overview = document.getElementById("overview");
         overview.style.display = "block";
         var left = document.getElementById("right_arrow");
@@ -392,7 +318,15 @@
         var well = out[out.length - 1];
         var plate = out[out.length - 2];
         var div_plate = document.getElementById("plate");
+        var div2 = document.getElementById("plate2");
+        var div3 = document.getElementById("plate3");
+        var div4 = document.getElementById("plate4");
+        var div5 = document.getElementById("plate5");
         div_plate.innerHTML = '';
+        div2.innerHTML = '';
+        div3.innerHTML = '';
+        div4.innerHTML = '';
+        div5.innerHTML = '';
         var div = document.getElementById("lateral_div");
         console.log(well,images[well][1])
         div.innerHTML = '<img src={{url_for('static',filename= '')}}' + 'images' +sep+ plate +sep+ well +sep+ images[well][1] + ' />';

@@ -23,6 +23,15 @@
   top: 5%;
   left: 4%;
 }
+.title_cardio{
+  position: fixed;
+  top: 2%;
+  left: 4%;
+}
+.title_cardio h1 {
+  font-size: 400%;
+}
+
 
 .title_terato h1 {
   font-size: 500%;
@@ -30,25 +39,27 @@
 
 .mca{
    position: absolute;
-  width: 50%;
-  height: 40%;
+  width: 26%;
+  height: 26%;
   top:80%;
-  left: 25%;
+  right: 10%;
 }
-.pca{
-   position: absolute;
-  width: 50%;
-  height: 40%;
-  top:10%;
-  left: 25%;
-}
+
 .feno{
   position: absolute;
-  width: 80%;
-  height: 80%;
-  top:170%;
-  left: 28%;
+  width: 50%;
+  height:50%;
+  top:80%;
+  left: 20%;
 }
+.feno1{
+  position: absolute;
+  width: 70%;
+  height: 70%;
+  top:1%;
+  left: 20%;
+}
+
 .center {
   margin: 0;
   position: fixed;
@@ -203,7 +214,7 @@
 
 .video {
   position: fixed;
-  top: 5%;
+  top:20%;
   left: 2%;
 }
 
@@ -212,6 +223,7 @@
   top: 25%;
   left: 4%;
 }
+
 .page {
   font-size: 30px;
 
@@ -323,6 +335,21 @@
   height: 100%;
   width: 100%;
 }
+.print_plate2 {
+  display: grid;
+  grid-template-columns: repeat(2, 24vw);
+  grid-template-rows: repeat(10, 8vh);
+  grid-gap: 5px 0px;
+  top: 4%;
+  right: 6%;
+  position: fixed;
+  z-index: 20;
+}
+
+.print_plate2 img {
+  height: 100%;
+  width: 100%;
+}
 
 .arrow {
   border: solid black;
@@ -359,6 +386,17 @@
 .box {
   position: fixed;
   top: 20%;
+
+}
+.box2 {
+  position: fixed;
+  top: 12%;
+  left:4%;
+}
+.box3 {
+  position: fixed;
+  top: 10%;
+  left:4%;
 }
 
 .refresh {

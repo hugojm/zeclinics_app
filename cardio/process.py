@@ -196,8 +196,13 @@ def generate_video(video_frames, masks_a, masks_v, fps, video_name, debug=False)
     size=video_frames[0].shape
 
     frames_vid = [None]*len(video_frames)
-    fourcc = cv2.VideoWriter_fourcc(*'VP80')
+    
+    #fourcc = cv2.VideoWriter_fourcc(*'VP80')
+    #out = cv2.VideoWriter(video_name, fourcc, fps, (size[1],size[0]), False)
+
+    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
     out = cv2.VideoWriter(video_name, fourcc, fps, (size[1],size[0]), False)
+
     for i in range(0,len(video_frames)):
         grad_v = ndimage.morphological_gradient(masks_v[i], size=(3,3))
         grad_a = ndimage.morphological_gradient(masks_a[i], size=(3,3))

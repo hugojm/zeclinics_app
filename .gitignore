@@ -2,5 +2,8 @@ zeclinics_app/static/weight/
 zeclinics_app/static/images/
 zeclinics_app/static/videos/
 zeclinics_app/static/temp/
+zeclinics_app/Terato_Alex
 /lifs/
 *.pt
+*.DS_Store
+zeclinics_app/ipynb_checkpoints/

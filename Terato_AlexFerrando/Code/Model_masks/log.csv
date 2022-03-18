@@ -1,0 +1,1 @@
+epoch,Train_loss,Test_loss,Test_f1_score_outline_lat,Test_f1_score_heart_lat,Test_f1_score_yolk_lat,Test_f1_score_ov_lat,Test_f1_score_eyes_dor,Test_f1_score_outline_dor,Test_f1_score

@@ -68,12 +68,13 @@ def center_img(img,out_shape,top_left):
     return img
 
 
-def lifpreprocess(path,out_dir='output',index_of_interest=2,out_shape='original',store=False,debug=False):
+def lifpreprocess(path, out_dir='output', index_of_interest=2, out_shape='original', store=False, debug=False):
     start=time.time()
 
     #Read LIF files in the 'path' directory/file
     directory = os.path.isdir(path)
     if(directory):
+        print('directory', directory, 'is a directory')
         path_files = [f for f in listdir(path) if isfile(join(path, f))]
         lif_imgs = [LifFile(path+os.sep+subpath).get_image(index_of_interest) for subpath in path_files]
     else:

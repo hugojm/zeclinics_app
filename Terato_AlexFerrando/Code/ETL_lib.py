@@ -521,8 +521,8 @@ and saves the roi with it's corresponding format in the well folder.
 # Mask is the loaded mask, tensor
 # Well path where to save the roi
 # Mask_name is outline_dor, ov_dor,...
-def generate_and_save_roi(mask,well_path,mask_name):
-    mask2 = np.array(mask,dtype=np.uint8)
+def generate_and_save_roi(mask, well_path, mask_name):
+    mask2 = np.array(mask, dtype=np.uint8)
     if mask_name != "eyes_dor":
 
         contours, _ = cv2.findContours(mask2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)

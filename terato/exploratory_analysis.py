@@ -52,7 +52,6 @@ def doseresponse(df, path):
   ).transform_filter(selector)
 
 
-  compounds = np.delete(compounds, 0)
   for c in compounds:
     dosevsdeath = alt.Chart(df).mark_bar().transform_filter(alt.datum.compound == c).transform_fold(
         fold = ['dead24', 'dead120'],
